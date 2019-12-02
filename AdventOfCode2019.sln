@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "1_Fuel", "1_Fuel\1_Fuel.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "2_Intcode", "2_Intcode\2_Intcode.csproj", "{40F447E9-9530-44A6-8117-AF31966F57FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SantasToolBoxTests", "SantasToolBoxTests\SantasToolBoxTests.csproj", "{CDFCB876-0628-4432-B933-A61A950AA519}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{40F447E9-9530-44A6-8117-AF31966F57FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40F447E9-9530-44A6-8117-AF31966F57FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40F447E9-9530-44A6-8117-AF31966F57FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDFCB876-0628-4432-B933-A61A950AA519}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDFCB876-0628-4432-B933-A61A950AA519}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDFCB876-0628-4432-B933-A61A950AA519}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDFCB876-0628-4432-B933-A61A950AA519}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

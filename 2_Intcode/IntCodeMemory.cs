@@ -3,13 +3,20 @@ using System.Linq;
 
 namespace _2_Intcode
 {
-    interface IIntCodeMemory
+    interface IIntReadOnlyCodeMemory
     {
-        IIntCodeMemory Clone();
+        IIntReadOnlyCodeMemory Clone();
 
-        int this[int index] { get; set; }
+        IIntCodeMemory CloneWriteable();
+
+        int this[int index] { get; }
 
         int Length { get; }
+    }
+
+    interface IIntCodeMemory : IIntReadOnlyCodeMemory
+    {
+        new int this[int index] { get; set; }
     }
 
     class IntCodeMemory : IIntCodeMemory
@@ -29,7 +36,9 @@ namespace _2_Intcode
 
         public int Length => this.memory.Length;
 
-        public IIntCodeMemory Clone() => new IntCodeMemory(this.memory);
+        public IIntReadOnlyCodeMemory Clone() => new IntCodeMemory(this.memory);
+
+        public IIntCodeMemory CloneWriteable() => new IntCodeMemory(this.memory);
 
     }
 }

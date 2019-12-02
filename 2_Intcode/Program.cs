@@ -66,39 +66,5 @@ namespace _2_Intcode
 
             }
         }
-
-        private class SingleLineStringInputParser
-        {
-            private string[]? inputStrings = null;
-            private int currentPosition = 0;
-
-            public bool GetInt(string? input, out int value)
-            {
-                value = -1;
-
-                if (this.currentPosition >= this.inputStrings?.Length)
-                {
-                    this.inputStrings = null;
-                    this.currentPosition = 0;
-                }
-
-                if (this.inputStrings == null)
-                {
-                    if (string.IsNullOrWhiteSpace(input))
-                    {
-                        return false;
-                    }
-
-                    this.inputStrings = input.Split(',');
-                }
-
-                if (this.currentPosition >= this.inputStrings.Length)
-                {
-                    return false;
-                }
-
-                return int.TryParse(this.inputStrings[this.currentPosition++], out value);
-            }
-        }
     }
 }

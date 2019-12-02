@@ -4,7 +4,7 @@ namespace _2_Intcode
 {
     interface IIntCodeComputer
     {
-        IIntCodeMemory Run(IIntCodeMemory ROM);
+        IIntCodeMemory Run(IIntReadOnlyCodeMemory ROM);
     }
 
     class IntCodeComputer : IIntCodeComputer
@@ -16,9 +16,9 @@ namespace _2_Intcode
             EoF = 99
         }
 
-        public IIntCodeMemory Run(IIntCodeMemory ROM)
+        public IIntCodeMemory Run(IIntReadOnlyCodeMemory ROM)
         {
-            var workingMemory = ROM.Clone();
+            var workingMemory = ROM.CloneWriteable();
 
             for (int programPosition = 0; programPosition < workingMemory.Length; programPosition += 4)
             {
