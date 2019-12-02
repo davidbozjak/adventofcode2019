@@ -8,13 +8,6 @@ namespace _2_Intcode
 {
     class Program
     {
-        private enum IntInstruction : int
-        {
-            Add = 1,
-            Multiply = 2,
-            EoF = 99
-        }
-
         static void Main(string[] args)
         {
             var inputParser = new SingleLineStringInputParser();
@@ -32,97 +25,35 @@ namespace _2_Intcode
 
         private static void Part1(IList<int> programCode)
         {
+            var computer = new IntCodeComputer();
+            var memory = new IntCodeMemory(programCode);
+
             // First, before running, replace the values of the program as required.
-            programCode[1] = 12;
-            programCode[2] = 2;
+            memory[1] = 12;
+            memory[2] = 2;
 
-            for (int programPosition = 0; programPosition < programCode.Count; programPosition += 4)
-            {
-                IntInstruction instruction = (IntInstruction)programCode[programPosition];
-
-                if (instruction == IntInstruction.EoF)
-                {
-                    break;
-                }
-
-                int address1 = programCode[programPosition + 1];
-                int address2 = programCode[programPosition + 2];
-                int writeTo = programCode[programPosition + 3];
-
-                int value1 = programCode[address1];
-                int value2 = programCode[address2];
-
-                int result;
-
-                if (instruction == IntInstruction.Add)
-                {
-                    result = value1 + value2;
-                }
-                else if (instruction == IntInstruction.Multiply)
-                {
-                    result = value1 * value2;
-                }
-                else
-                {
-                    throw new Exception("Unrecognized IntInstruction");
-                }
-
-                programCode[writeTo] = result;
-            }
+            var memoryAfterExecution = computer.Run(memory);
 
             int printPosition = 0;
-            Console.WriteLine($"Value at Position {printPosition} is {programCode[printPosition]}");
+            Console.WriteLine($"Value at Position {printPosition} is {memoryAfterExecution[printPosition]}");
         }
 
         private static void Part2(IList<int> programCode)
         {
-            // First, before running, replace the values of the program as required.
+            var computer = new IntCodeComputer();
+            var memory = new IntCodeMemory(programCode);
 
             for (int noun = 0; noun < 99; noun++)
             {
                 for (int verb = 0; verb < 99; verb++)
                 {
-                    var memory = programCode.ToList();
                     memory[1] = noun;
                     memory[2] = verb;
 
-                    for (int programPosition = 0; programPosition < memory.Count; programPosition += 4)
-                    {
-                        IntInstruction instruction = (IntInstruction)memory[programPosition];
-
-                        if (instruction == IntInstruction.EoF)
-                        {
-                            break;
-                        }
-
-                        int address1 = memory[programPosition + 1];
-                        int address2 = memory[programPosition + 2];
-                        int writeTo = memory[programPosition + 3];
-
-                        int value1 = memory[address1];
-                        int value2 = memory[address2];
-
-                        int result;
-
-                        if (instruction == IntInstruction.Add)
-                        {
-                            result = value1 + value2;
-                        }
-                        else if (instruction == IntInstruction.Multiply)
-                        {
-                            result = value1 * value2;
-                        }
-                        else
-                        {
-                            throw new Exception("Unrecognized IntInstruction");
-                        }
-
-                        memory[writeTo] = result;
-                    }
+                    var memoryAfterExecution = computer.Run(memory);
 
                     int printPosition = 0;
-                    int output = memory[printPosition];
-                    Console.WriteLine($"Value at Position {printPosition} is {output}");
+                    int output = memoryAfterExecution[printPosition];
 
                     if (output == 19690720)
                     {
@@ -140,8 +71,6 @@ namespace _2_Intcode
         {
             private string[]? inputStrings = null;
             private int currentPosition = 0;
-                
-            public SingleLineStringInputParser() { }
 
             public bool GetInt(string? input, out int value)
             {
