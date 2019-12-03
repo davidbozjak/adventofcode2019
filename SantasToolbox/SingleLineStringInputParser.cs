@@ -6,13 +6,21 @@ namespace SantasToolbox
     /// <summary>
     /// A parser, to be used with <see cref="InputProvider"/>, when the input comes as a seperated line of many inputs 
     /// </summary>
-    public class SingleLineStringInputParser
+    public class SingleLineStringInputParser<T>
     {
-        private readonly Queue<int> parserInputs = new Queue<int>();
+        public delegate bool StringToTConverter(string? input, out T result);
 
-        public bool GetInt(string? input, out int value)
+        private readonly Queue<T> parserInputs = new Queue<T>();
+        private readonly StringToTConverter converter;
+
+        public SingleLineStringInputParser(StringToTConverter converter)
         {
-            value = -1;
+            this.converter = converter;
+        }
+
+        public bool GetValue(string? input, out T value)
+        {
+            value = default(T);
 
             if (string.IsNullOrWhiteSpace(input))
             {
@@ -23,8 +31,8 @@ namespace SantasToolbox
             {
                 var itemsToAdd = 
                     input.Split(',')
-                    .Where(w => int.TryParse(w, out _) == true)
-                    .Select(w => int.Parse(w))
+                    .Where(w => this.converter(w, out _) == true)
+                    .Select(w => { T value; this.converter(w, out value); return value; })
                     .ToList();
 
                 itemsToAdd.ForEach(w => this.parserInputs.Enqueue(w));

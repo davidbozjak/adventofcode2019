@@ -1,8 +1,7 @@
-﻿using System;
-using System.Text;
+﻿using SantasToolbox;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using SantasToolbox;
 
 namespace _2_Intcode
 {
@@ -10,8 +9,8 @@ namespace _2_Intcode
     {
         static void Main(string[] args)
         {
-            var inputParser = new SingleLineStringInputParser();
-            using var inputProvider = new InputProvider<int>("Input.txt", inputParser.GetInt);
+            var inputParser = new SingleLineStringInputParser<int>(int.TryParse);
+            using var inputProvider = new InputProvider<int>("Input.txt", inputParser.GetValue);
 
             Part1(inputProvider.ToList());
 

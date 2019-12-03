@@ -9,9 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SantasToolbox", "SantasTool
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "1_Fuel", "1_Fuel\1_Fuel.csproj", "{0ED94A21-7200-4600-AFBB-3BA4CBD33E7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "2_Intcode", "2_Intcode\2_Intcode.csproj", "{40F447E9-9530-44A6-8117-AF31966F57FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "2_Intcode", "2_Intcode\2_Intcode.csproj", "{40F447E9-9530-44A6-8117-AF31966F57FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SantasToolBoxTests", "SantasToolBoxTests\SantasToolBoxTests.csproj", "{CDFCB876-0628-4432-B933-A61A950AA519}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SantasToolBoxTests", "SantasToolBoxTests\SantasToolBoxTests.csproj", "{CDFCB876-0628-4432-B933-A61A950AA519}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3_Wires", "3_Wires\3_Wires.csproj", "{F718AFC0-B953-4E43-85B0-B66CF9642A69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{CDFCB876-0628-4432-B933-A61A950AA519}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDFCB876-0628-4432-B933-A61A950AA519}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDFCB876-0628-4432-B933-A61A950AA519}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F718AFC0-B953-4E43-85B0-B66CF9642A69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F718AFC0-B953-4E43-85B0-B66CF9642A69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F718AFC0-B953-4E43-85B0-B66CF9642A69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F718AFC0-B953-4E43-85B0-B66CF9642A69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
