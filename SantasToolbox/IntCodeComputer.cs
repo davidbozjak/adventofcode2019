@@ -15,6 +15,10 @@ namespace SantasToolbox
             Multiply = 2,
             Input = 3,
             Output = 4,
+            JumpIfTrue = 5,
+            JumpIfFalse = 6,
+            LessThan = 7,
+            Equals = 8,
             EoF = 99
         }
 
@@ -45,6 +49,10 @@ namespace SantasToolbox
                     IntInstruction.Multiply => 4,
                     IntInstruction.Input => 2,
                     IntInstruction.Output => 2,
+                    IntInstruction.JumpIfTrue => 3,
+                    IntInstruction.JumpIfFalse => 3,
+                    IntInstruction.LessThan => 4,
+                    IntInstruction.Equals => 4,
                     _ => throw new Exception("Unrecognized IntInstruction"),
                 };
 
@@ -63,14 +71,48 @@ namespace SantasToolbox
                 }
                 else if (instruction == IntInstruction.Output)
                 {
-                    int address1 = workingMemory[programPosition + 1];
-                    int param1 = modeParam1 == InstructionMode.PositionMode ? workingMemory[address1] : address1;
+                    int input1 = workingMemory[programPosition + 1];
+                    int param1 = modeParam1 == InstructionMode.PositionMode ? workingMemory[input1] : input1;
 
                     if (output == null)
                         throw new Exception("Program is expecting Output to be wired up");
 
                     output(param1);
                 }
+                else if (instruction == IntInstruction.JumpIfTrue || instruction == IntInstruction.JumpIfFalse)
+                {
+                    int input1 = workingMemory[programPosition + 1];
+                    int param1 = modeParam1 == InstructionMode.PositionMode ? workingMemory[input1] : input1;
+
+                    int input2 = workingMemory[programPosition + 2];
+                    int param2 = modeParam2 == InstructionMode.PositionMode ? workingMemory[input2] : input2;
+
+                    if ((instruction == IntInstruction.JumpIfTrue && (param1 != 0)) ||
+                        (instruction == IntInstruction.JumpIfFalse && (param1 == 0)))
+                    {
+                        programPosition = param2;
+                        sizeOfInstruction = 0;
+                    }
+                }
+                else if (instruction == IntInstruction.Equals || instruction == IntInstruction.LessThan)
+                {
+                    int input1 = workingMemory[programPosition + 1];
+                    int input2 = workingMemory[programPosition + 2];
+                    int writeTo = workingMemory[programPosition + 3];
+
+                    int value1 = modeParam1 == InstructionMode.PositionMode ? workingMemory[input1] : input1;
+                    int value2 = modeParam2 == InstructionMode.PositionMode ? workingMemory[input2] : input2;
+
+                    var result = instruction switch
+                    {
+                        IntInstruction.LessThan => value1 < value2 ? 1 : 0,
+                        IntInstruction.Equals => value1 == value2 ? 1 : 0,
+                        _ => throw new Exception("Unexpected instruction")
+                    };
+
+                    workingMemory[writeTo] = result;
+                }
+                else throw new Exception("Unexpected instruction");
             }
 
             return workingMemory;

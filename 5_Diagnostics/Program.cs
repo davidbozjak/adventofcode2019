@@ -16,10 +16,10 @@ namespace _5_Diagnostics
 
             inputProvider.Reset();
 
-            //Part2(inputProvider.ToList());
+            Part2(inputProvider.ToList());
 
             //Debug example:
-            //Part1(new List<int>{ 1101, 100, -1, 4, 0 });
+            //Part1(new List<int>{ 3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8 });
         }
 
         private static void Part1(IList<int> programCode)
@@ -35,7 +35,7 @@ namespace _5_Diagnostics
             var computer = new IntCodeComputer();
             var memory = new IntCodeMemory(programCode);
 
-            
+            var memoryAfterExecution = computer.Run(memory, () => 5, Console.WriteLine);
         }
     }
 }
