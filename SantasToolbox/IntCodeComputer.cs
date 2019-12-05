@@ -50,7 +50,7 @@ namespace SantasToolbox
 
                 if (instruction == IntInstruction.Add || instruction == IntInstruction.Multiply)
                 {
-                    HandleAdditionOrMultiplication(workingMemory, programPosition, instruction, modeParam1, modeParam2, modeParam3);
+                    HandleAdditionOrMultiplication(workingMemory, programPosition, instruction, modeParam1, modeParam2);
                 }
                 else if (instruction == IntInstruction.Input)
                 {
@@ -64,25 +64,26 @@ namespace SantasToolbox
                 else if (instruction == IntInstruction.Output)
                 {
                     int address1 = workingMemory[programPosition + 1];
+                    int param1 = modeParam1 == InstructionMode.PositionMode ? workingMemory[address1] : address1;
 
                     if (output == null)
                         throw new Exception("Program is expecting Output to be wired up");
 
-                    output(workingMemory[address1]);
+                    output(param1);
                 }
             }
 
             return workingMemory;
         }
 
-        private static void HandleAdditionOrMultiplication(IIntCodeMemory workingMemory, int programPosition, IntInstruction instruction, InstructionMode modeParam1, InstructionMode modeParam2, InstructionMode modeParam3)
+        private static void HandleAdditionOrMultiplication(IIntCodeMemory workingMemory, int programPosition, IntInstruction instruction, InstructionMode modeParam1, InstructionMode modeParam2)
         {
-            int address1 = workingMemory[programPosition + 1];
-            int address2 = workingMemory[programPosition + 2];
+            int input1 = workingMemory[programPosition + 1];
+            int input2 = workingMemory[programPosition + 2];
             int writeTo = workingMemory[programPosition + 3];
 
-            int value1 = modeParam1 == InstructionMode.PositionMode ? workingMemory[address1] : address1;
-            int value2 = modeParam2 == InstructionMode.PositionMode ? workingMemory[address2] : address2;
+            int value1 = modeParam1 == InstructionMode.PositionMode ? workingMemory[input1] : input1;
+            int value2 = modeParam2 == InstructionMode.PositionMode ? workingMemory[input2] : input2;
 
             int result = instruction switch
             {
@@ -103,17 +104,17 @@ namespace SantasToolbox
 
             var strInput = input.ToString();
 
-            modeParam1 = ParseInstructionAtIndex(3);
+            modeParam1 = ParseInstructionAtIndex(strInput.Length - 3);
 
-            modeParam2 = ParseInstructionAtIndex(4);
+            modeParam2 = ParseInstructionAtIndex(strInput.Length - 4);
 
-            modeParam3 = ParseInstructionAtIndex(5);
+            modeParam3 = ParseInstructionAtIndex(strInput.Length - 5);
 
             return (instruction, modeParam1, modeParam2, modeParam3);
 
             InstructionMode ParseInstructionAtIndex(int index) =>
-                strInput.Length <= index ? InstructionMode.ImmediateMode :
-                    strInput[index] == '1' ? InstructionMode.PositionMode : InstructionMode.ImmediateMode;
+                (index < 0 || strInput.Length <= index) ? InstructionMode.PositionMode :
+                    strInput[index] == '1' ? InstructionMode.ImmediateMode : InstructionMode.PositionMode;
         }
     }
 }

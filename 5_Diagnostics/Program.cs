@@ -12,14 +12,14 @@ namespace _5_Diagnostics
             var inputParser = new SingleLineStringInputParser<int>(int.TryParse);
             using var inputProvider = new InputProvider<int>("Input.txt", inputParser.GetValue);
 
-            //Part1(inputProvider.ToList());
+            Part1(inputProvider.ToList());
 
-            //inputProvider.Reset();
+            inputProvider.Reset();
 
             //Part2(inputProvider.ToList());
 
             //Debug example:
-            Part1(new List<int>{ 3, 0, 4, 0, 99 });
+            //Part1(new List<int>{ 1101, 100, -1, 4, 0 });
         }
 
         private static void Part1(IList<int> programCode)
@@ -28,9 +28,6 @@ namespace _5_Diagnostics
             var memory = new IntCodeMemory(programCode);
 
             var memoryAfterExecution = computer.Run(memory, () => 1, Console.WriteLine);
-
-            int printPosition = 0;
-            Console.WriteLine($"Value at Position {printPosition} is {memoryAfterExecution[printPosition]}");
         }
 
         private static void Part2(IList<int> programCode)
