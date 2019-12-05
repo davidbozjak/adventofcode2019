@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace _2_Intcode
+namespace SantasToolbox
 {
-    interface IIntReadOnlyCodeMemory
+    public interface IIntReadOnlyCodeMemory
     {
         IIntReadOnlyCodeMemory Clone();
 
@@ -14,12 +14,12 @@ namespace _2_Intcode
         int Length { get; }
     }
 
-    interface IIntCodeMemory : IIntReadOnlyCodeMemory
+    public interface IIntCodeMemory : IIntReadOnlyCodeMemory
     {
         new int this[int index] { get; set; }
     }
 
-    class IntCodeMemory : IIntCodeMemory
+    public class IntCodeMemory : IIntCodeMemory
     {
         private readonly int[] memory;
 
