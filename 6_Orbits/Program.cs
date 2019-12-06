@@ -50,9 +50,7 @@ namespace _6_Orbits
 
         private static void Part1(IEnumerator<(string, string)> inputProvider)
         {
-            var factory = new UniqueFactory<OrbitingBody, string>(w => w.Name, w => new OrbitingBody(w));
-            
-            GetAllOrbiters(inputProvider, factory);
+            var factory = GetAllOrbiters(inputProvider);
 
             var totalOrbits = factory.AllCreatedInstances.Sum(w => w.TotalOrbiterCount);
 
@@ -62,9 +60,7 @@ namespace _6_Orbits
 
         private static void Part2(IEnumerator<(string, string)> inputProvider)
         {
-            var factory = new UniqueFactory<OrbitingBody, string>(w => w.Name, w => new OrbitingBody(w));
-
-            GetAllOrbiters(inputProvider, factory);
+            var factory = GetAllOrbiters(inputProvider);
 
             var you = factory.AllCreatedInstances.First(w => w.Name == "YOU");
             var santa = factory.AllCreatedInstances.First(w => w.Name == "SAN");
@@ -104,8 +100,10 @@ namespace _6_Orbits
             return null;
         }
 
-        private static void GetAllOrbiters(IEnumerator<(string, string)> inputProvider, UniqueFactory<OrbitingBody, string> factory)
+        private static UniqueFactory<OrbitingBody, string> GetAllOrbiters(IEnumerator<(string, string)> inputProvider)
         {
+            var factory = new UniqueFactory<OrbitingBody, string>(w => w.Name, w => new OrbitingBody(w));
+
             while (inputProvider.MoveNext())
             {
                 (string orbitingId, string orbiterId) = inputProvider.Current;
@@ -115,63 +113,8 @@ namespace _6_Orbits
 
                 orbiting.AddOrbiter(orbiter);
             }
-        }
 
-        class UniqueFactory<T, U>
-            where U : IComparable
-        {
-            private readonly List<T> allCreatedInstances = new List<T>();
-            private readonly Func<T, U> identifierFunc;
-            private readonly Func<U, T> constructingFunc;
-
-            public UniqueFactory(Func<T, U> identifierFunc, Func<U, T> constructingFunc)
-            {
-                this.identifierFunc = identifierFunc;
-                this.constructingFunc = constructingFunc;
-            }
-
-            public IReadOnlyList<T> AllCreatedInstances => this.allCreatedInstances.AsReadOnly();
-
-            public T GetOrCreateInstance(U identifier)
-            {
-                var instance = this.allCreatedInstances.FirstOrDefault(w => this.identifierFunc(w).CompareTo(identifier) == 0);
-
-                if (instance != null) return instance;
-
-                instance = this.constructingFunc(identifier);
-
-                allCreatedInstances.Add(instance);
-
-                return instance;
-            }
-        }
-
-        class OrbitingBody
-        {
-            private readonly List<OrbitingBody> orbitingBodies = new List<OrbitingBody>();
-
-            public string Name { get; }
-
-            public OrbitingBody? Orbiting { get; private set; }
-
-            public int DirectOrbiterCount => this.orbitingBodies.Count;
-
-            public int IndirectOrbiterCount => this.orbitingBodies.Sum(w => w.TotalOrbiterCount);
-
-            public int TotalOrbiterCount => this.DirectOrbiterCount + this.IndirectOrbiterCount;
-
-            public IReadOnlyList<OrbitingBody> DirectOrbitingBodies => this.orbitingBodies.AsReadOnly();
-
-            public OrbitingBody(string name)
-            {
-                this.Name = name;
-            }
-
-            public void AddOrbiter(OrbitingBody orbitingBody)
-            {
-                this.orbitingBodies.Add(orbitingBody);
-                orbitingBody.Orbiting = this;
-            }
+            return factory;
         }
 
         private static bool ParseOrbitRelationship(string? input, out (string, string) orbitRelationship)
