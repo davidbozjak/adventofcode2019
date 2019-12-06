@@ -68,7 +68,7 @@ namespace _6_Orbits
             var path = FindPath(you, santa, new List<OrbitingBody>());
 
             Console.WriteLine("Part2 Done");
-            Console.WriteLine($"Total transitions needed to orbit same object as Santa: {path.Count - 2}");
+            Console.WriteLine($"Total transitions needed to orbit same object as Santa: {(path?.Count - 2)?.ToString() ?? "path not found"}");
         }
 
         private static List<OrbitingBody>? FindPath(OrbitingBody current, OrbitingBody goal, List<OrbitingBody> path)
@@ -100,9 +100,9 @@ namespace _6_Orbits
             return null;
         }
 
-        private static UniqueFactory<OrbitingBody, string> GetAllOrbiters(IEnumerator<(string, string)> inputProvider)
+        private static UniqueFactory<string, OrbitingBody> GetAllOrbiters(IEnumerator<(string, string)> inputProvider)
         {
-            var factory = new UniqueFactory<OrbitingBody, string>(w => w.Name, w => new OrbitingBody(w));
+            var factory = new UniqueFactory<string, OrbitingBody>(w => new OrbitingBody(w));
 
             while (inputProvider.MoveNext())
             {

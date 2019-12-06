@@ -5,31 +5,27 @@ using System.Linq;
 namespace SantasToolbox
 {
     public class UniqueFactory<T, U>
-            where U : IComparable
+        where T:notnull
+        where U:notnull
     {
-        private readonly List<T> allCreatedInstances = new List<T>();
-        private readonly Func<T, U> identifierFunc;
-        private readonly Func<U, T> constructingFunc;
+        private readonly Dictionary<T, U> allCreatedInstances = new Dictionary<T, U>();
+        private readonly Func<T, U> constructingFunc;
 
-        public UniqueFactory(Func<T, U> identifierFunc, Func<U, T> constructingFunc)
+        public UniqueFactory(Func<T, U> constructingFunc)
         {
-            this.identifierFunc = identifierFunc;
             this.constructingFunc = constructingFunc;
         }
 
-        public IReadOnlyList<T> AllCreatedInstances => this.allCreatedInstances.AsReadOnly();
+        public IReadOnlyList<U> AllCreatedInstances => this.allCreatedInstances.Values.ToList().AsReadOnly();
 
-        public T GetOrCreateInstance(U identifier)
+        public U GetOrCreateInstance(T identifier)
         {
-            var instance = this.allCreatedInstances.FirstOrDefault(w => this.identifierFunc(w).CompareTo(identifier) == 0);
+            if (!this.allCreatedInstances.ContainsKey(identifier))
+            {
+                this.allCreatedInstances[identifier] = this.constructingFunc(identifier);
+            }
 
-            if (instance != null) return instance;
-
-            instance = this.constructingFunc(identifier);
-
-            allCreatedInstances.Add(instance);
-
-            return instance;
+            return this.allCreatedInstances[identifier];
         }
     }
 }
