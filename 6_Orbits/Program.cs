@@ -12,6 +12,11 @@ namespace _6_Orbits
             using var inputProvider = new InputProvider<(string, string)>("Input.txt", ParseOrbitRelationship);
 
             Part1(inputProvider);
+            
+            inputProvider.Reset();
+
+            Part2(inputProvider);
+
             //Part1(new List<(string, string)>
             //{
             //    ("COM", "B"),
@@ -25,12 +30,82 @@ namespace _6_Orbits
             //    ("E", "J"),
             //    ("J", "K"),
             //    ("K", "L"), }.GetEnumerator());
+
+            //Part2(new List<(string, string)>
+            //{
+            //    ("COM", "B"),
+            //    ("B", "C"),
+            //    ("C", "D"),
+            //    ("D", "E"),
+            //    ("E", "F"),
+            //    ("B", "G"),
+            //    ("G", "H"),
+            //    ("D", "I"),
+            //    ("E", "J"),
+            //    ("J", "K"),
+            //    ("K", "L"),
+            //    ("K", "YOU"),
+            //    ("I", "SAN"),}.GetEnumerator());
         }
 
         private static void Part1(IEnumerator<(string, string)> inputProvider)
         {
             var factory = new UniqueFactory<OrbitingBody, string>(w => w.Name, w => new OrbitingBody(w));
+            
+            GetAllOrbiters(inputProvider, factory);
 
+            var totalOrbits = factory.AllCreatedInstances.Sum(w => w.TotalOrbiterCount);
+
+            Console.WriteLine("Part1 Done");
+            Console.WriteLine($"Total sum of all orbits: {totalOrbits}");
+        }
+
+        private static void Part2(IEnumerator<(string, string)> inputProvider)
+        {
+            var factory = new UniqueFactory<OrbitingBody, string>(w => w.Name, w => new OrbitingBody(w));
+
+            GetAllOrbiters(inputProvider, factory);
+
+            var you = factory.AllCreatedInstances.First(w => w.Name == "YOU");
+            var santa = factory.AllCreatedInstances.First(w => w.Name == "SAN");
+
+            var path = FindPath(you, santa, new List<OrbitingBody>());
+
+            Console.WriteLine("Part2 Done");
+            Console.WriteLine($"Total transitions needed to orbit same object as Santa: {path.Count - 2}");
+        }
+
+        private static List<OrbitingBody>? FindPath(OrbitingBody current, OrbitingBody goal, List<OrbitingBody> path)
+        {
+            if (current == goal)
+                return path;
+
+            var nodesToVisit = current.DirectOrbitingBodies.ToList();
+
+            if (current.Orbiting != null)
+            {
+                nodesToVisit.Add(current.Orbiting);
+            }
+
+            foreach (var orbitingBody in nodesToVisit)
+            {
+                if (path.Contains(orbitingBody))
+                    continue;
+
+                var newPath = path.ToList();
+                newPath.Add(orbitingBody);
+
+                var successfulPath = FindPath(orbitingBody, goal, newPath);
+
+                if (successfulPath != null)
+                    return successfulPath;
+            }
+
+            return null;
+        }
+
+        private static void GetAllOrbiters(IEnumerator<(string, string)> inputProvider, UniqueFactory<OrbitingBody, string> factory)
+        {
             while (inputProvider.MoveNext())
             {
                 (string orbitingId, string orbiterId) = inputProvider.Current;
@@ -40,11 +115,6 @@ namespace _6_Orbits
 
                 orbiting.AddOrbiter(orbiter);
             }
-
-            var totalOrbits = factory.AllCreatedInstances.Sum(w => w.TotalOrbiterCount);
-
-            Console.WriteLine("Part1 Done");
-            Console.WriteLine($"Total sum of all orbits: {totalOrbits}");
         }
 
         class UniqueFactory<T, U>
@@ -82,11 +152,15 @@ namespace _6_Orbits
 
             public string Name { get; }
 
+            public OrbitingBody? Orbiting { get; private set; }
+
             public int DirectOrbiterCount => this.orbitingBodies.Count;
 
             public int IndirectOrbiterCount => this.orbitingBodies.Sum(w => w.TotalOrbiterCount);
 
             public int TotalOrbiterCount => this.DirectOrbiterCount + this.IndirectOrbiterCount;
+
+            public IReadOnlyList<OrbitingBody> DirectOrbitingBodies => this.orbitingBodies.AsReadOnly();
 
             public OrbitingBody(string name)
             {
@@ -96,6 +170,7 @@ namespace _6_Orbits
             public void AddOrbiter(OrbitingBody orbitingBody)
             {
                 this.orbitingBodies.Add(orbitingBody);
+                orbitingBody.Orbiting = this;
             }
         }
 
