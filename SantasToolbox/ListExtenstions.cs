@@ -6,7 +6,8 @@ namespace SantasToolbox
 {
     public static class ListExtenstions
     {
-        public static bool AddIfNotNull<T>(this List<T> list, T element)
+        public static bool AddIfNotNull<T>(this List<T> list, T? element)
+            where T:class
         {
             if (element == null)
             {
