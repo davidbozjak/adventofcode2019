@@ -31,161 +31,92 @@ namespace _7_Amplify
         {
             var sequence = new List<int> { 0, 1, 2, 3, 4 };
 
-            int maxOutput = 0;
+            (int maxOutput, IList<int> permutatedSequence) = FindMaxPermutation(programCode, sequence);
 
-            foreach (var permutatedSequence in PermuteList(sequence))
-            {
-                var output = AmplifySequence(programCode, sequence);
-
-                if (output > maxOutput)
-                {
-                    maxOutput = output;
-                    Console.WriteLine($"New max output {maxOutput} with sequence {string.Join(", ", permutatedSequence)}");
-                }
-            }
-
-            int AmplifySequence(IList<int> programCode, IList<int> sequence)
-            {
-                var computer = new IntCodeComputer();
-                var memory = new IntCodeMemory(programCode);
-
-                int input = 0;
-                int output = 0;
-                int inputCallCount = 0;
-
-                for (int i = 0; i < 5; i++)
-                {
-                    input = output;
-                    inputCallCount = 0;
-
-                    var memoryAfterExecution = computer.Run(memory, InputFunc, OutputFunc);
-
-                    int InputFunc()
-                    {
-                        if (inputCallCount++ == 0) return sequence[i];
-                        else return input;
-                    }
-
-                    void OutputFunc(int compOutput)
-                    {
-                        output = compOutput;
-                        //Console.WriteLine($"Computer {i} output: {output}");
-                    }
-                }
-
-                return output;
-            }
+            Console.WriteLine($"Part1: New max output {maxOutput} with sequence {string.Join(", ", permutatedSequence)}");
         }
 
         private static void Part2(IList<int> programCode)
         {
             var sequence = new List<int> { 5, 6, 7, 8, 9 };
-            
-            int maxOutput = 0;
 
-            foreach (var permutatedSequence in PermuteList(sequence))
+            (int maxOutput, IList<int> permutatedSequence) = FindMaxPermutation(programCode, sequence);
+
+            Console.WriteLine($"Part2: New max output {maxOutput} with sequence {string.Join(", ", permutatedSequence)}");
+        }
+
+        private static (int maxOutput, IList<int> sequenceWithOutput) FindMaxPermutation(IList<int> programCode, IList<int> sequence)
+        {
+            int maxOutput = 0;
+            IList<int> maxSequence = sequence;
+
+            foreach (var permutatedSequence in sequence.PermuteList())
             {
                 var output = AmplifySequence(programCode, sequence).Result;
 
                 if (output > maxOutput)
                 {
                     maxOutput = output;
-                    Console.WriteLine($"New max output {maxOutput} with sequence {string.Join(", ", permutatedSequence)}");
+                    maxSequence = permutatedSequence.ToList();
                 }
             }
 
-            async Task<int> AmplifySequence(IList<int> programCode, IList<int> sequence)
-            {
-                var computer = new IntCodeComputer();
-                var memory = new IntCodeMemory(programCode);
-
-                int[] input = new int[5];
-                int[] inputCallCount = new int[5];
-                TaskCompletionSource<int>[] taskCompletionSources = 
-                    Enumerable.Range(0, 5).Select(_ => new TaskCompletionSource<int>()).ToArray();
-
-                taskCompletionSources[0].SetResult(0);
-
-                var tasks = new List<Task>();
-
-                for (int i = 0; i < 5; i++)
-                {
-                    int indexCopy = i;
-
-                    tasks.Add(Task.Run(() =>
-                    {
-                        var memoryAfterExecution = computer.Run(memory, () => InputFunc(indexCopy).Result, output => OutputFunc(output, indexCopy));
-                    }));
-                }
-
-                await Task.WhenAll(tasks);
-
-                return input[0];
-
-                async Task<int> InputFunc(int compIndex)
-                {
-                    if (inputCallCount[compIndex]++ == 0)
-                    {
-                        return sequence[compIndex];
-                    }
-                    else
-                    {
-                        var input = await taskCompletionSources[compIndex].Task;
-                        taskCompletionSources[compIndex] = new TaskCompletionSource<int>();
-                        return input;
-                    }
-                }
-
-                void OutputFunc(int compOutput, int compIndex)
-                {
-                    int inputIndex = compIndex + 1;
-
-                    if (inputIndex > 4)
-                        inputIndex = 0;
-
-                    input[inputIndex] = compOutput;
-
-                    taskCompletionSources[inputIndex].SetResult(compOutput);
-
-                    //Console.WriteLine($"Computer {compIndex} output: {compOutput}");
-                }
-            }
+            return (maxOutput, maxSequence);
         }
 
-        private static IEnumerable<IList<int>> PermuteList(IList<int> sequence)
+        private static async Task<int> AmplifySequence(IList<int> programCode, IList<int> sequence)
         {
-            return permute(sequence, 0, sequence.Count);
+            var computer = new IntCodeComputer();
+            var memory = new IntCodeMemory(programCode);
 
-            IEnumerable<IList<int>> permute(IList<int> sequence, int k, int m)
+            int[] input = new int[sequence.Count];
+            int[] inputCallCount = new int[sequence.Count];
+            TaskCompletionSource<int>[] taskCompletionSources =
+                Enumerable.Range(0, sequence.Count).Select(_ => new TaskCompletionSource<int>()).ToArray();
+
+            taskCompletionSources[0].SetResult(0);
+
+            var tasks = new List<Task>();
+
+            for (int i = 0; i < sequence.Count; i++)
             {
-                if (k == m)
+                int indexCopy = i;
+
+                tasks.Add(Task.Run(() =>
                 {
-                    yield return sequence;
+                    var memoryAfterExecution = computer.Run(memory, () => InputFunc(indexCopy).Result, output => OutputFunc(output, indexCopy));
+                }));
+            }
+
+            await Task.WhenAll(tasks);
+
+            return input[0];
+
+            async Task<int> InputFunc(int compIndex)
+            {
+                if (inputCallCount[compIndex]++ == 0)
+                {
+                    return sequence[compIndex];
                 }
                 else
                 {
-                    for (int i = k; i < m; i++)
-                    {
-                        swapPlaces(sequence, k, i);
-                        
-                        foreach (var newSquence in permute(sequence, k + 1, m))
-                        {
-                            yield return newSquence;
-                        }
-
-                        swapPlaces(sequence, k, i);
-                    }
+                    var input = await taskCompletionSources[compIndex].Task;
+                    taskCompletionSources[compIndex] = new TaskCompletionSource<int>();
+                    return input;
                 }
             }
 
-            void swapPlaces(IList<int> sequence, int indexA, int indexB)
+            void OutputFunc(int compOutput, int compIndex)
             {
-                var temp = sequence[indexA];
-                sequence[indexA] = sequence[indexB];
-                sequence[indexB] = temp;
+                int inputIndex = compIndex + 1;
+
+                if (inputIndex > 4)
+                    inputIndex = 0;
+
+                input[inputIndex] = compOutput;
+
+                taskCompletionSources[inputIndex].SetResult(compOutput);
             }
         }
-
-        
     }
 }
