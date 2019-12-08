@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace SantasToolbox
 {
@@ -20,9 +18,9 @@ namespace SantasToolbox
 
         public static IEnumerable<IList<T>> PermuteList<T>(this IList<T> sequence)
         {
-            return permute(sequence, 0, sequence.Count);
+            return Permute(sequence, 0, sequence.Count);
 
-            IEnumerable<IList<T>> permute(IList<T> sequence, int k, int m)
+            static IEnumerable<IList<T>> Permute(IList<T> sequence, int k, int m)
             {
                 if (k == m)
                 {
@@ -34,7 +32,7 @@ namespace SantasToolbox
                     {
                         SwapPlaces(sequence, k, i);
 
-                        foreach (var newSquence in permute(sequence, k + 1, m))
+                        foreach (var newSquence in Permute(sequence, k + 1, m))
                         {
                             yield return newSquence;
                         }
@@ -44,7 +42,7 @@ namespace SantasToolbox
                 }
             }
 
-            void SwapPlaces(IList<T> sequence, int indexA, int indexB)
+            static void SwapPlaces(IList<T> sequence, int indexA, int indexB)
             {
                 T temp = sequence[indexA];
                 sequence[indexA] = sequence[indexB];

@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "6_Orbits", "6_Orbits\6_Orbi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "7_Amplify", "7_Amplify\7_Amplify.csproj", "{99A9740D-E757-4F76-9FFB-1DB4327E965E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "8_Image", "8_Image\8_Image.csproj", "{475F0C44-F43F-4C41-9397-6B1F92F26D10}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{99A9740D-E757-4F76-9FFB-1DB4327E965E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99A9740D-E757-4F76-9FFB-1DB4327E965E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99A9740D-E757-4F76-9FFB-1DB4327E965E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{475F0C44-F43F-4C41-9397-6B1F92F26D10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{475F0C44-F43F-4C41-9397-6B1F92F26D10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{475F0C44-F43F-4C41-9397-6B1F92F26D10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{475F0C44-F43F-4C41-9397-6B1F92F26D10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
