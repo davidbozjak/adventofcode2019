@@ -62,117 +62,27 @@ namespace SantasToolbox
 
                 if (instruction == IntInstruction.Add || instruction == IntInstruction.Multiply)
                 {
-                    HandleAdditionOrMultiplication(workingMemory, programPosition, relativeBase, instruction, modeParam1, modeParam2, modeParam3);
+                    HandleAdditionOrMultiplicationCommands(workingMemory, programPosition, relativeBase, instruction, modeParam1, modeParam2, modeParam3);
                 }
                 else if (instruction == IntInstruction.Input)
                 {
-                    long input1 = workingMemory[programPosition + 1];
-
-                    long address1 = modeParam1 switch
-                    {
-                        InstructionMode.PositionMode => input1,
-                        InstructionMode.RelativeMode => relativeBase + input1,
-                        _ => throw new Exception("Unexpected instruction mode"),
-                    };
-
-                    if (input == null)
-                        throw new Exception("Program is expecting Input to be wired up");
-
-                    workingMemory[address1] = input();
+                    HandleInputCommand(input, workingMemory, relativeBase, programPosition, modeParam1);
                 }
                 else if (instruction == IntInstruction.Output)
                 {
-                    long input1 = workingMemory[programPosition + 1];
-                    long param1 = modeParam1 switch {
-                        InstructionMode.PositionMode => workingMemory[input1],
-                        InstructionMode.ImmediateMode => input1,
-                        InstructionMode.RelativeMode => workingMemory[relativeBase + input1],
-                        _ => throw new Exception("Unexpected instruction mode"),
-                    };
-
-                    if (output == null)
-                        throw new Exception("Program is expecting Output to be wired up");
-
-                    output(param1);
+                    HandleOutputCommand(output, workingMemory, relativeBase, programPosition, modeParam1);
                 }
                 else if (instruction == IntInstruction.JumpIfTrue || instruction == IntInstruction.JumpIfFalse)
                 {
-                    long input1 = workingMemory[programPosition + 1];
-                    long param1 = modeParam1 switch
-                    {
-                        InstructionMode.PositionMode => workingMemory[input1],
-                        InstructionMode.ImmediateMode => input1,
-                        InstructionMode.RelativeMode => workingMemory[relativeBase + input1],
-                        _ => throw new Exception("Unexpected instruction mode"),
-                    };
-
-                    long input2 = workingMemory[programPosition + 2];
-                    long param2 = modeParam2 switch
-                    {
-                        InstructionMode.PositionMode => workingMemory[input2],
-                        InstructionMode.ImmediateMode => input2,
-                        InstructionMode.RelativeMode => workingMemory[relativeBase + input2],
-                        _ => throw new Exception("Unexpected instruction mode"),
-                    };
-
-                    if ((instruction == IntInstruction.JumpIfTrue && (param1 != 0)) ||
-                        (instruction == IntInstruction.JumpIfFalse && (param1 == 0)))
-                    {
-                        programPosition = param2;
-                        sizeOfInstruction = 0;
-                    }
+                    HandleJumpCommands(workingMemory, ref sizeOfInstruction, relativeBase, ref programPosition, instruction, modeParam1, modeParam2);
                 }
                 else if (instruction == IntInstruction.Equals || instruction == IntInstruction.LessThan)
                 {
-                    long input1 = workingMemory[programPosition + 1];
-                    long input2 = workingMemory[programPosition + 2];
-                    long input3 = workingMemory[programPosition + 3];
-
-                    long value1 = modeParam1 switch
-                    {
-                        InstructionMode.PositionMode => workingMemory[input1],
-                        InstructionMode.ImmediateMode => input1,
-                        InstructionMode.RelativeMode => workingMemory[relativeBase + input1],
-                        _ => throw new Exception("Unexpected instruction mode"),
-                    };
-
-                    long value2 = modeParam2 switch
-                    {
-                        InstructionMode.PositionMode => workingMemory[input2],
-                        InstructionMode.ImmediateMode => input2,
-                        InstructionMode.RelativeMode => workingMemory[relativeBase + input2],
-                        _ => throw new Exception("Unexpected instruction mode"),
-                    };
-
-                    var result = instruction switch
-                    {
-                        IntInstruction.LessThan => value1 < value2 ? 1 : 0,
-                        IntInstruction.Equals => value1 == value2 ? 1 : 0,
-                        _ => throw new Exception("Unexpected instruction")
-                    };
-
-                    long writeTo = modeParam3 switch
-                    {
-                        InstructionMode.PositionMode => input3,
-                        InstructionMode.RelativeMode => relativeBase + input3,
-                        _ => throw new Exception("Unexpected instruction mode"),
-                    };
-
-                    workingMemory[writeTo] = result;
+                    HandleComparisonCommands(workingMemory, relativeBase, programPosition, instruction, modeParam1, modeParam2, modeParam3);
                 }
                 else if (instruction == IntInstruction.AdjustRelativeBase)
                 {
-                    long input1 = workingMemory[programPosition + 1];
-
-                    long value1 = modeParam1 switch
-                    {
-                        InstructionMode.PositionMode => workingMemory[input1],
-                        InstructionMode.ImmediateMode => input1,
-                        InstructionMode.RelativeMode => workingMemory[relativeBase + input1],
-                        _ => throw new Exception("Unexpected instruction mode"),
-                    };
-
-                    relativeBase += value1;
+                    relativeBase = HandleAdjustRelativeBaseCommand(workingMemory, relativeBase, programPosition, modeParam1);
                 }
                 else throw new Exception("Unexpected instruction");
             }
@@ -180,27 +90,80 @@ namespace SantasToolbox
             return workingMemory;
         }
 
-        private static void HandleAdditionOrMultiplication(IIntCodeMemory workingMemory, long programPosition, long relativeBase, IntInstruction instruction, InstructionMode modeParam1, InstructionMode modeParam2, InstructionMode modeParam3)
+        private static long HandleAdjustRelativeBaseCommand(IIntCodeMemory workingMemory, long relativeBase, long programPosition, InstructionMode modeParam1)
         {
             long input1 = workingMemory[programPosition + 1];
+            long value1 = GetValueForInput(workingMemory, relativeBase, modeParam1, input1);
+
+            relativeBase += value1;
+            return relativeBase;
+        }
+
+        private static void HandleComparisonCommands(IIntCodeMemory workingMemory, long relativeBase, long programPosition, IntInstruction instruction, InstructionMode modeParam1, InstructionMode modeParam2, InstructionMode modeParam3)
+        {
+            long input1 = workingMemory[programPosition + 1];
+            long value1 = GetValueForInput(workingMemory, relativeBase, modeParam1, input1);
+
             long input2 = workingMemory[programPosition + 2];
+            long value2 = GetValueForInput(workingMemory, relativeBase, modeParam2, input2);
+
             long input3 = workingMemory[programPosition + 3];
 
-            long value1 = modeParam1 switch
+            var result = instruction switch
             {
-                InstructionMode.PositionMode => workingMemory[input1],
-                InstructionMode.ImmediateMode => input1,
-                InstructionMode.RelativeMode => workingMemory[relativeBase + input1],
-                _ => throw new Exception("Unexpected instruction mode")
+                IntInstruction.LessThan => value1 < value2 ? 1 : 0,
+                IntInstruction.Equals => value1 == value2 ? 1 : 0,
+                _ => throw new Exception("Unexpected instruction")
             };
 
-            long value2 = modeParam2 switch
+            WriteResultToWorkingMemory(result, workingMemory, relativeBase, modeParam3, input3);
+        }
+
+        private static void HandleJumpCommands(IIntCodeMemory workingMemory, ref int sizeOfInstruction, long relativeBase, ref long programPosition, IntInstruction instruction, InstructionMode modeParam1, InstructionMode modeParam2)
+        {
+            long input1 = workingMemory[programPosition + 1];
+            long param1 = GetValueForInput(workingMemory, relativeBase, modeParam1, input1);
+
+            long input2 = workingMemory[programPosition + 2];
+            long param2 = GetValueForInput(workingMemory, relativeBase, modeParam2, input2);
+
+            if ((instruction == IntInstruction.JumpIfTrue && (param1 != 0)) ||
+                (instruction == IntInstruction.JumpIfFalse && (param1 == 0)))
             {
-                InstructionMode.PositionMode => workingMemory[input2],
-                InstructionMode.ImmediateMode => input2,
-                InstructionMode.RelativeMode => workingMemory[relativeBase + input2],
-                _ => throw new Exception("Unexpected instruction mode")
-            };
+                programPosition = param2;
+                sizeOfInstruction = 0;
+            }
+        }
+
+        private static void HandleInputCommand(Func<long>? input, IIntCodeMemory workingMemory, long relativeBase, long programPosition, InstructionMode modeParam1)
+        {
+            if (input == null)
+                throw new Exception("Program is expecting Input to be wired up");
+
+            long input1 = workingMemory[programPosition + 1];
+            WriteResultToWorkingMemory(input(), workingMemory, relativeBase, modeParam1, input1);
+        }
+
+        private static void HandleOutputCommand(Action<long>? output, IIntCodeMemory workingMemory, long relativeBase, long programPosition, InstructionMode modeParam1)
+        {
+            long input1 = workingMemory[programPosition + 1];
+            long param1 = GetValueForInput(workingMemory, relativeBase, modeParam1, input1);
+
+            if (output == null)
+                throw new Exception("Program is expecting Output to be wired up");
+
+            output(param1);
+        }
+
+        private static void HandleAdditionOrMultiplicationCommands(IIntCodeMemory workingMemory, long programPosition, long relativeBase, IntInstruction instruction, InstructionMode modeParam1, InstructionMode modeParam2, InstructionMode modeParam3)
+        {
+            long input1 = workingMemory[programPosition + 1];
+            long value1 = GetValueForInput(workingMemory, relativeBase, modeParam1, input1);
+            
+            long input2 = workingMemory[programPosition + 2];
+            long value2 = GetValueForInput(workingMemory, relativeBase, modeParam2, input2);
+
+            long input3 = workingMemory[programPosition + 3];
 
             long result = instruction switch
             {
@@ -209,10 +172,26 @@ namespace SantasToolbox
                 _ => throw new Exception("Unrecognized IntInstruction"),
             };
 
-            long writeTo = modeParam3 switch
+            WriteResultToWorkingMemory(result, workingMemory, relativeBase, modeParam3, input3);
+        }
+
+        private static long GetValueForInput(IIntCodeMemory workingMemory, long relativeBase, InstructionMode modeParam, long input)
+        {
+            return modeParam switch
             {
-                InstructionMode.PositionMode => input3,
-                InstructionMode.RelativeMode => relativeBase + input3,
+                InstructionMode.PositionMode => workingMemory[input],
+                InstructionMode.ImmediateMode => input,
+                InstructionMode.RelativeMode => workingMemory[relativeBase + input],
+                _ => throw new Exception("Unexpected instruction mode"),
+            };
+        }
+
+        private static void WriteResultToWorkingMemory(long result, IIntCodeMemory workingMemory, long relativeBase, InstructionMode modeParam, long input)
+        {
+            long writeTo = modeParam switch
+            {
+                InstructionMode.PositionMode => input,
+                InstructionMode.RelativeMode => relativeBase + input,
                 _ => throw new Exception("Unexpected instruction mode")
             };
 
