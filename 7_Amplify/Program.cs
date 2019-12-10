@@ -10,8 +10,8 @@ namespace _7_Amplify
     {
         static void Main(string[] args)
         {
-            var inputParser = new SingleLineStringInputParser<int>(int.TryParse);
-            using var inputProvider = new InputProvider<int>("Input.txt", inputParser.GetValue);
+            var inputParser = new SingleLineStringInputParser<long>(long.TryParse);
+            using var inputProvider = new InputProvider<long>("Input.txt", inputParser.GetValue);
 
             Part1(inputProvider.ToList());
 
@@ -27,27 +27,27 @@ namespace _7_Amplify
             //Part2(new List<int> { 3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5 });
         }
 
-        private static void Part1(IList<int> programCode)
+        private static void Part1(IList<long> programCode)
         {
             var sequence = new List<int> { 0, 1, 2, 3, 4 };
 
-            (int maxOutput, IList<int> permutatedSequence) = FindMaxPermutation(programCode, sequence);
+            (long maxOutput, IList<int> permutatedSequence) = FindMaxPermutation(programCode, sequence);
 
             Console.WriteLine($"Part1: New max output {maxOutput} with sequence {string.Join(", ", permutatedSequence)}");
         }
 
-        private static void Part2(IList<int> programCode)
+        private static void Part2(IList<long> programCode)
         {
             var sequence = new List<int> { 5, 6, 7, 8, 9 };
 
-            (int maxOutput, IList<int> permutatedSequence) = FindMaxPermutation(programCode, sequence);
+            (long maxOutput, IList<int> permutatedSequence) = FindMaxPermutation(programCode, sequence);
 
             Console.WriteLine($"Part2: New max output {maxOutput} with sequence {string.Join(", ", permutatedSequence)}");
         }
 
-        private static (int maxOutput, IList<int> sequenceWithOutput) FindMaxPermutation(IList<int> programCode, IList<int> sequence)
+        private static (long maxOutput, IList<int> sequenceWithOutput) FindMaxPermutation(IList<long> programCode, IList<int> sequence)
         {
-            int maxOutput = 0;
+            long maxOutput = 0;
             IList<int> maxSequence = sequence;
 
             foreach (var permutatedSequence in sequence.PermuteList())
@@ -64,15 +64,15 @@ namespace _7_Amplify
             return (maxOutput, maxSequence);
         }
 
-        private static async Task<int> AmplifySequence(IList<int> programCode, IList<int> sequence)
+        private static async Task<long> AmplifySequence(IList<long> programCode, IList<int> sequence)
         {
             var computer = new IntCodeComputer();
             var memory = new IntCodeMemory(programCode);
 
-            int[] input = new int[sequence.Count];
+            long[] input = new long[sequence.Count];
             int[] inputCallCount = new int[sequence.Count];
-            TaskCompletionSource<int>[] taskCompletionSources =
-                Enumerable.Range(0, sequence.Count).Select(_ => new TaskCompletionSource<int>()).ToArray();
+            TaskCompletionSource<long>[] taskCompletionSources =
+                Enumerable.Range(0, sequence.Count).Select(_ => new TaskCompletionSource<long>()).ToArray();
 
             taskCompletionSources[0].SetResult(0);
 
@@ -92,7 +92,7 @@ namespace _7_Amplify
 
             return input[0];
 
-            async Task<int> InputFunc(int compIndex)
+            async Task<long> InputFunc(int compIndex)
             {
                 if (inputCallCount[compIndex]++ == 0)
                 {
@@ -101,12 +101,12 @@ namespace _7_Amplify
                 else
                 {
                     var input = await taskCompletionSources[compIndex].Task;
-                    taskCompletionSources[compIndex] = new TaskCompletionSource<int>();
+                    taskCompletionSources[compIndex] = new TaskCompletionSource<long>();
                     return input;
                 }
             }
 
-            void OutputFunc(int compOutput, int compIndex)
+            void OutputFunc(long compOutput, int compIndex)
             {
                 int inputIndex = compIndex + 1;
 

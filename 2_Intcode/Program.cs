@@ -9,8 +9,8 @@ namespace _2_Intcode
     {
         static void Main(string[] args)
         {
-            var inputParser = new SingleLineStringInputParser<int>(int.TryParse);
-            using var inputProvider = new InputProvider<int>("Input.txt", inputParser.GetValue);
+            var inputParser = new SingleLineStringInputParser<long>(long.TryParse);
+            using var inputProvider = new InputProvider<long>("Input.txt", inputParser.GetValue);
 
             Part1(inputProvider.ToList());
 
@@ -19,10 +19,10 @@ namespace _2_Intcode
             Part2(inputProvider.ToList());
 
             //Debug example:
-            //Part1(new List<int>{ 1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50 });
+            //Part1(new List<long>{ 1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50 });
         }
 
-        private static void Part1(IList<int> programCode)
+        private static void Part1(IList<long> programCode)
         {
             var computer = new IntCodeComputer();
             var memory = new IntCodeMemory(programCode);
@@ -37,7 +37,7 @@ namespace _2_Intcode
             Console.WriteLine($"Value at Position {printPosition} is {memoryAfterExecution[printPosition]}");
         }
 
-        private static void Part2(IList<int> programCode)
+        private static void Part2(IList<long> programCode)
         {
             var computer = new IntCodeComputer();
             var memory = new IntCodeMemory(programCode);
@@ -52,7 +52,7 @@ namespace _2_Intcode
                     var memoryAfterExecution = computer.Run(memory);
 
                     int printPosition = 0;
-                    int output = memoryAfterExecution[printPosition];
+                    long output = memoryAfterExecution[printPosition];
 
                     if (output == 19690720)
                     {

@@ -9,26 +9,27 @@ namespace SantasToolbox
 
         IIntCodeMemory CloneWriteable();
 
-        int this[int index] { get; }
+        long this[long index] { get; }
 
         int Length { get; }
     }
 
     public interface IIntCodeMemory : IIntReadOnlyCodeMemory
     {
-        new int this[int index] { get; set; }
+        new long this[long index] { get; set; }
     }
 
     public class IntCodeMemory : IIntCodeMemory
     {
-        private readonly int[] memory;
+        private readonly long[] memory;
 
-        public IntCodeMemory(IEnumerable<int> inputProvider)
+        public IntCodeMemory(IEnumerable<long> inputProvider)
         {
-            this.memory = inputProvider.ToArray();
+            this.memory = new long[100000];
+            inputProvider.ToArray().CopyTo(this.memory, 0);
         }
 
-        public int this[int index] 
+        public long this[long index] 
         { 
             get => this.memory[index];
             set => this.memory[index] = value; 

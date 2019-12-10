@@ -1,9 +1,9 @@
-﻿using System;
+﻿using SantasToolbox;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using SantasToolbox;
 
-namespace _5_Diagnostics
+namespace _9_Boost
 {
     class Program
     {
@@ -19,7 +19,9 @@ namespace _5_Diagnostics
             Part2(inputProvider.ToList());
 
             //Debug example:
-            //Part1(new List<long>{ 3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8 });
+            //Part1(new List<long>{ 109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99 });
+            //Part1(new List<long> { 1102, 34915192, 34915192, 7, 4, 7, 99, 0 });
+            //Part1(new List<long> { 104, 1125899906842624, 99 });
         }
 
         private static void Part1(IList<long> programCode)
@@ -35,7 +37,7 @@ namespace _5_Diagnostics
             var computer = new IntCodeComputer();
             var memory = new IntCodeMemory(programCode);
 
-            var memoryAfterExecution = computer.Run(memory, () => 5, Console.WriteLine);
+            var memoryAfterExecution = computer.Run(memory, () => 2, Console.WriteLine);
         }
     }
 }
