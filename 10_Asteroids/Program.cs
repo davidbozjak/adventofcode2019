@@ -8,7 +8,7 @@ namespace _10_Asteroids
     {
         static void Main(string[] args)
         {
-            using var inputProvider = new InputProvider<string>("Input.txt", (string? input, out string value) => { var isnull = string.IsNullOrWhiteSpace(input); value = input; return !isnull; });
+            using var inputProvider = new InputProvider<string>("Input.txt", (string? input, out string value) => { var isnull = string.IsNullOrWhiteSpace(input); value = input ?? string.Empty; return !isnull; });
 
             Part1(inputProvider.GetEnumerator());
 

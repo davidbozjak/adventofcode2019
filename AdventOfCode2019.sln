@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "9_Boost", "9_Boost\9_Boost.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "10_Asteroids", "10_Asteroids\10_Asteroids.csproj", "{8A50D2D7-0EA5-412A-B47C-265FA0101146}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "11_Robot", "11_Robot\11_Robot.csproj", "{1D0F9AAD-1351-4218-B870-F9EC9C9A7B3C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{8A50D2D7-0EA5-412A-B47C-265FA0101146}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A50D2D7-0EA5-412A-B47C-265FA0101146}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A50D2D7-0EA5-412A-B47C-265FA0101146}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D0F9AAD-1351-4218-B870-F9EC9C9A7B3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D0F9AAD-1351-4218-B870-F9EC9C9A7B3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D0F9AAD-1351-4218-B870-F9EC9C9A7B3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D0F9AAD-1351-4218-B870-F9EC9C9A7B3C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
