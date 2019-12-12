@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace _12_TBN
+namespace _12_Moons
 {
     class Program
     {
@@ -36,38 +36,111 @@ namespace _12_TBN
 
         private static void Part2(IList<Moon> moons)
         {
-            var originalState = moons.Select(w => new Moon(w.PositionX, w.PositionY, w.PositionZ).ToString()).ToList();
+            var originalState = moons.Select(w => new Moon(w.PositionX, w.PositionY, w.PositionZ)).ToList();
 
-            var cycles = new Dictionary<Moon, long>();
+            int cycleX, cycleY, cycleZ = 0;
 
-            for (long count = 1; cycles.Count < moons.Count; count++)
+            bool isCycle = false;
+
+            for (cycleX = 1; !isCycle; cycleX++)
             {
-                SimulateStepOfUniverse(moons);
-
                 for (int i = 0; i < moons.Count; i++)
                 {
-                    if (moons[i].ToString() == originalState[i])
-                    {
-                        Console.WriteLine($"Moon {i} had a chycle on {count}");
+                    var moon1 = moons[i];
 
-                        if (!cycles.ContainsKey(moons[i]))
-                        {
-                            cycles.Add(moons[i], count);
-                        }
-                        else
-                        {
-                            var previouslyDiscoveredCycle = cycles[moons[i]];
-                            if (count % previouslyDiscoveredCycle != 0)
-                            {
-                                throw new Exception("Error in cycles?!");
-                            }
-                        }
+                    for (int j = i + 1; j < moons.Count; j++)
+                    {
+                        var moon2 = moons[j];
+
+                        var compareX = moon1.PositionX.CompareTo(moon2.PositionX);
+
+                        moon1.VelocityX -= compareX;
+                        moon2.VelocityX += compareX;
                     }
                 }
 
+                isCycle = true;
+
+                for (int i = 0; i < moons.Count; i++)
+                {
+                    var moon = moons[i];
+                    moon.UpdatePosition();
+
+                    if (moon.PositionX != originalState[i].PositionX)
+                    {
+                        isCycle = false;
+                    }
+                }
             }
 
-            //Console.WriteLine($"Universe returns into state0 after {count} steps");
+            isCycle = false;
+
+            for (cycleY = 1; !isCycle; cycleY++)
+            {
+                for (int i = 0; i < moons.Count; i++)
+                {
+                    var moon1 = moons[i];
+
+                    for (int j = i + 1; j < moons.Count; j++)
+                    {
+                        var moon2 = moons[j];
+
+                        var compareY = moon1.PositionY.CompareTo(moon2.PositionY);
+
+                        moon1.VelocityY -= compareY;
+                        moon2.VelocityY += compareY;
+                    }
+                }
+
+                isCycle = true;
+
+                for (int i = 0; i < moons.Count; i++)
+                {
+                    var moon = moons[i];
+                    moon.UpdatePosition();
+
+                    if (moon.PositionY != originalState[i].PositionY)
+                    {
+                        isCycle = false;
+                    }
+                }
+            }
+
+            isCycle = false;
+
+            for (cycleZ = 1; !isCycle; cycleZ++)
+            {
+                for (int i = 0; i < moons.Count; i++)
+                {
+                    var moon1 = moons[i];
+
+                    for (int j = i + 1; j < moons.Count; j++)
+                    {
+                        var moon2 = moons[j];
+
+                        var compareZ = moon1.PositionZ.CompareTo(moon2.PositionZ);
+
+                        moon1.VelocityZ -= compareZ;
+                        moon2.VelocityZ += compareZ;
+                    }
+                }
+
+                isCycle = true;
+
+                for (int i = 0; i < moons.Count; i++)
+                {
+                    var moon = moons[i];
+                    moon.UpdatePosition();
+
+                    if (moon.PositionZ != originalState[i].PositionZ)
+                    {
+                        isCycle = false;
+                    }
+                }
+            }
+
+            Console.WriteLine("Done");
+            Console.WriteLine($"Universe cycles X:{cycleX} Y:{cycleY} Z:{cycleZ}");
         }
 
         private static void SimulateStepOfUniverse(IList<Moon> moons)

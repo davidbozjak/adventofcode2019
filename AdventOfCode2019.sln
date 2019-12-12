@@ -31,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "10_Asteroids", "10_Asteroid
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "11_Robot", "11_Robot\11_Robot.csproj", "{1D0F9AAD-1351-4218-B870-F9EC9C9A7B3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "12_TBN", "12_TBN\12_TBN.csproj", "{9C00EB8C-45ED-4212-9CD6-F6B01DE750C9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "12_Moons", "12_Moons\12_Moons.csproj", "{9C00EB8C-45ED-4212-9CD6-F6B01DE750C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
