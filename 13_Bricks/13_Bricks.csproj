@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>_13_Bricks</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Input.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SantasToolbox\SantasToolbox.csproj" />
+  </ItemGroup>
+
+</Project>
