@@ -1,6 +1,5 @@
 ﻿using SantasToolbox;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -15,15 +14,72 @@ namespace _14_TBN
 
             Part1(inputProvider);
 
-            //Console.WriteLine("Press any key to continue to Part2");
-            //Console.ReadKey();
+            Console.WriteLine();
+            inputProvider.Reset();
 
-            //inputProvider.Reset();
-
-            //Part2(inputProvider);
+            Part2(inputProvider);
         }
 
         private static void Part1(IEnumerable<string> input)
+        {
+            var reactionCookBook = SetupReactionCookBook(input);
+
+            var fullIngredientsList = new List<Ingredient>();
+
+            var fuelReaction = reactionCookBook.AllCreatedInstances.First(w => w.ResultChemical == "FUEL");
+
+            FillIngredientsList(fuelReaction, 1, fullIngredientsList, reactionCookBook.AllCreatedInstances);
+
+            Console.WriteLine("Done Part1");
+            foreach (Ingredient ingredient in fullIngredientsList)
+            {
+                Console.WriteLine($"{ingredient.Chemical} {ingredient.Amount}");
+            }
+        }
+
+        private static void Part2(IEnumerable<string> input)
+        {
+            var reactionCookBook = SetupReactionCookBook(input);
+
+            var fuelReaction = reactionCookBook.AllCreatedInstances.First(w => w.ResultChemical == "FUEL");
+
+            long oreToUse = 1000000000000;
+            long maxFuel = DevideAndConquer(1, oreToUse);
+
+            Console.WriteLine($"Part2 Done");
+            Console.WriteLine($"Max fuel: {maxFuel}");
+
+            long DevideAndConquer(long low, long high)
+            {
+                if (high - low < 2) return low;
+
+                var fullIngredientsList = new List<Ingredient>();
+
+                long mid = (low + high) / 2;
+
+                FillIngredientsList(fuelReaction, mid, fullIngredientsList, reactionCookBook.AllCreatedInstances);
+
+                var oreUsed = fullIngredientsList[0].Amount;
+                var oreLeft = oreToUse - oreUsed;
+
+                Console.WriteLine($"Low: {low} Mid: {mid} High: {high} OreLeft: {oreLeft}");
+
+                if (oreLeft == 0)
+                {
+                    return mid;
+                }
+                else if (oreLeft > 0)
+                {
+                    return DevideAndConquer(mid, high);
+                }
+                else
+                {
+                    return DevideAndConquer(low, mid);
+                }
+            }
+        }
+
+        private static UniqueFactory<string, Reaction> SetupReactionCookBook(IEnumerable<string> input)
         {
             var reactionCookBook = new UniqueFactory<string, Reaction>(w => new Reaction(w));
 
@@ -37,20 +93,7 @@ namespace _14_TBN
                 reaction.Complexity = GetComplexity(reaction, 0);
             }
 
-            var fullIngredientsList = new List<Ingredient>();
-
-            var fuelReaction = reactionCookBook.AllCreatedInstances.First(w => w.ResultChemical == "FUEL");
-
-            FillIngredientsList(fuelReaction, 1, fullIngredientsList, reactionCookBook.AllCreatedInstances);
-
-            reactionCookBook.AllCreatedInstances.Where(w => w.ResultChemical == "ORE").ToList().ForEach(w => w.Complexity = 1);
-
-            Console.WriteLine();
-            Console.WriteLine("Done Part1");
-            foreach (Ingredient ingredient in fullIngredientsList)
-            {
-                Console.WriteLine($"{ingredient.Chemical} {ingredient.Amount}");
-            }
+            return reactionCookBook;
 
             int GetComplexity(Reaction reaction, int c)
             {
@@ -71,11 +114,11 @@ namespace _14_TBN
             }
         }
 
-        private static void FillIngredientsList(Reaction reaction, int requiredAmount, List<Ingredient> fullIngredientsList, IReadOnlyList<Reaction> cookBook)
+        private static void FillIngredientsList(Reaction reaction, long requiredAmount, List<Ingredient> fullIngredientsList, IReadOnlyList<Reaction> cookBook)
         {
             foreach (var ingredient in reaction.InputChemicals)
             {
-                var multiplyer = Math.Max(1, (int)Math.Ceiling((double)requiredAmount / reaction.ResultAmount));
+                var multiplyer = Math.Max(1, (long)Math.Ceiling((double)requiredAmount / reaction.ResultAmount));
 
                 if (fullIngredientsList.Any(w => w.Chemical == ingredient.Chemical))
                 {
@@ -93,7 +136,6 @@ namespace _14_TBN
             {
                 do
                 {
-
                     var reactions = fullIngredientsList
                         .Where(w => cookBook.Any(wc => wc.ResultChemical == w.Chemical))
                         .Select(w => cookBook.First(wc => wc.ResultChemical == w.Chemical))
@@ -114,19 +156,13 @@ namespace _14_TBN
                     }
 
                 } while (true);
-                
             }
-        }
-
-        private static void Part2()
-        {
-
         }
 
         class Ingredient
         {
             public string Chemical;
-            public int Amount;
+            public long Amount;
         }
 
         class Reaction
