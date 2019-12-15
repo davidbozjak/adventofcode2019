@@ -35,7 +35,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "12_Moons", "12_Moons\12_Moo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "13_Bricks", "13_Bricks\13_Bricks.csproj", "{31177F19-0312-407C-B960-93E48AACA274}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "14_Fuel", "14_Fuel\14_Fuel.csproj", "{22EDFB92-9874-4E92-AD05-E24D4F74E72D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "14_Fuel", "14_Fuel\14_Fuel.csproj", "{22EDFB92-9874-4E92-AD05-E24D4F74E72D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "15_SpaceExplorer", "15_SpaceExplorer\15_SpaceExplorer.csproj", "{7EA4E380-DA83-44B4-B33D-9297A4A3A118}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +113,10 @@ Global
 		{22EDFB92-9874-4E92-AD05-E24D4F74E72D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22EDFB92-9874-4E92-AD05-E24D4F74E72D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22EDFB92-9874-4E92-AD05-E24D4F74E72D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EA4E380-DA83-44B4-B33D-9297A4A3A118}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EA4E380-DA83-44B4-B33D-9297A4A3A118}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EA4E380-DA83-44B4-B33D-9297A4A3A118}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EA4E380-DA83-44B4-B33D-9297A4A3A118}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
