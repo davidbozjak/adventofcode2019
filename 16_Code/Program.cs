@@ -1,6 +1,7 @@
 ﻿using SantasToolbox;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace _16_TBN
 
         private static void Part1(IList<int> input)
         {
-            input = RunFFT(input);
+            input = RunFFT(input.ToArray());
 
             Console.WriteLine($"After 100 phases: ");
             for (int i = 0; i < 8; i++)
@@ -51,7 +52,7 @@ namespace _16_TBN
 
             input = repeatedInput;
 
-            input = RunFFT(input);
+            input = RunFFT(input.ToArray(), (int)offset);
 
             Console.WriteLine($"After 100 phases: ");
             for (int i = 0; i < 8; i++)
@@ -61,63 +62,51 @@ namespace _16_TBN
             }
         }
 
-        private static IList<int> RunFFT(IList<int> input)
+        private static IList<int> RunFFT(int[] input, int offset = 0)
         {
-            int[] basePattern = { 0, 1, 0, -1};
             for (int phase = 0; phase < 100; phase++)
             {
-                var output = new List<int>(input.Count);
+                Console.WriteLine($"Started Phase {phase} at {DateTime.Now}");
+                var output = new int[input.Length];
 
-                for (int i = 0; i < input.Count; i++)
+                //for (int i = 0; i < input.Count; i++)
+                for (int i = input.Length - 1; i >= offset; i--)
                 {
-                    List<int> positive, negative;
-                    GetIndices(i, out positive, out negative);
+                    Stopwatch? stopwatch = null;
+
+                    if (i % 3000 == 0) stopwatch = Stopwatch.StartNew();
 
                     int sum = 0;
 
-                    foreach (var index in positive)
+                    for (int rep = i; rep < input.Length; rep += 4 * (i + 1))
                     {
-                        sum += input[index];
+                        for (int j = rep, count = 0; count < i + 1 && j < input.Length; j++, count++)
+                        {
+                            sum += input[j];
+                        }
+
+                        for (int j = rep + 2 * (i + 1), count = 0; count < i + 1 && j < input.Length; j++, count++)
+                        {
+                            sum -= input[j];
+                        }
                     }
 
-                    foreach (var index in negative)
+                    //output.Add((sum > 0 ? sum : -sum) % 10);
+                    output[i] = (sum > 0 ? sum : -sum) % 10;
+
+                    if (stopwatch != null) 
                     {
-                        sum -= input[index];
+                        stopwatch.Stop();
+                        var span = stopwatch.ElapsedTicks;
+
+                        Console.WriteLine($"{i} computed in {span} ticks. Iterations to offset: {i - offset}");
                     }
-
-                    //hack, j = i, as you know at the beginning you will only have 0s
-
-                    //for (int j = i, factor = i + 1; j < input.Count; j++, factor = factor + 1 >= pattern.Length ? 0 : factor + 1)
-                    //{
-                    //    sum += input[j] * pattern[factor];
-                    //}
-
-                    output.Add((sum > 0 ? sum : -sum) % 10);
                 }
 
                 input = output;
             }
 
             return input;
-
-            void GetIndices(int i, out List<int> positive, out List<int> negative)
-            {
-                positive = new List<int>();
-                negative = new List<int>();
-
-                for (int rep = i; rep < input.Count; rep += 4 * (i + 1))
-                {
-                    for (int j = rep, count = 0; count < i + 1 && j < input.Count; j++, count++)
-                    {
-                        positive.Add(j);
-                    }
-
-                    for (int j = rep + 2 * (i + 1), count = 0; count < i + 1 && j < input.Count; j++, count++)
-                    {
-                        negative.Add(j);
-                    }
-                }
-            }
         }
     }
 }
