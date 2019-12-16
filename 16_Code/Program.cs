@@ -15,10 +15,10 @@ namespace _16_TBN
             var inputParser = new SingleLineStringInputParser<int>(int.TryParse, w => w.Select(w => new string(w, 1)).ToArray());
             using var inputProvider = new InputProvider<int>("Input.txt", inputParser.GetValue);
 
-            //Part1(inputProvider.ToList());
+            Part1(inputProvider.ToList());
 
-            //Console.WriteLine();
-            //inputProvider.Reset();
+            Console.WriteLine();
+            inputProvider.Reset();
 
             Part2(inputProvider.ToList());
         }
@@ -66,41 +66,40 @@ namespace _16_TBN
         {
             for (int phase = 0; phase < 100; phase++)
             {
-                Console.WriteLine($"Started Phase {phase} at {DateTime.Now}");
                 var output = new int[input.Length];
 
-                //for (int i = 0; i < input.Count; i++)
+                int sum = 0;
+
                 for (int i = input.Length - 1; i >= offset; i--)
                 {
-                    Stopwatch? stopwatch = null;
 
-                    if (i % 3000 == 0) stopwatch = Stopwatch.StartNew();
-
-                    int sum = 0;
-
-                    for (int rep = i; rep < input.Length; rep += 4 * (i + 1))
+                    if (i > (input.Length * 3 / 4))
                     {
-                        for (int j = rep, count = 0; count < i + 1 && j < input.Length; j++, count++)
-                        {
-                            sum += input[j];
-                        }
+                        // for last quater we just add up all the digits
+                        sum += input[i];
+                    }
+                    else
+                    {
+                        // the rest mustn't rely on the last digit, instead it needs to start from scratch and to the "real algorithm"
+                        sum = 0;
 
-                        for (int j = rep + 2 * (i + 1), count = 0; count < i + 1 && j < input.Length; j++, count++)
+                        for (int rep = i; rep < input.Length; rep += 4 * (i + 1))
                         {
-                            sum -= input[j];
+                            for (int j = rep, count = 0; count < i + 1 && j < input.Length; j++, count++)
+                            {
+                                sum += input[j];
+                            }
+
+                            for (int j = rep + 2 * (i + 1), count = 0; count < i + 1 && j < input.Length; j++, count++)
+                            {
+                                sum -= input[j];
+                            }
                         }
                     }
 
-                    //output.Add((sum > 0 ? sum : -sum) % 10);
-                    output[i] = (sum > 0 ? sum : -sum) % 10;
+                    sum = (sum > 0 ? sum : -sum) % 10;
 
-                    if (stopwatch != null) 
-                    {
-                        stopwatch.Stop();
-                        var span = stopwatch.ElapsedTicks;
-
-                        Console.WriteLine($"{i} computed in {span} ticks. Iterations to offset: {i - offset}");
-                    }
+                    output[i] = sum;
                 }
 
                 input = output;
