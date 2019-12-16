@@ -14,12 +14,12 @@ namespace _16_TBN
             var inputParser = new SingleLineStringInputParser<int>(int.TryParse, w => w.Select(w => new string(w, 1)).ToArray());
             using var inputProvider = new InputProvider<int>("Input.txt", inputParser.GetValue);
 
-            Part1(inputProvider.ToList());
+            //Part1(inputProvider.ToList());
 
             //Console.WriteLine();
             //inputProvider.Reset();
 
-            //Part2(inputProvider.ToList());
+            Part2(inputProvider.ToList());
         }
 
         private static void Part1(IList<int> input)
@@ -63,37 +63,61 @@ namespace _16_TBN
 
         private static IList<int> RunFFT(IList<int> input)
         {
-            int[] basePattern = { 0, 1, 0, -1 };
+            int[] basePattern = { 0, 1, 0, -1};
             for (int phase = 0; phase < 100; phase++)
             {
                 var output = new List<int>(input.Count);
 
                 for (int i = 0; i < input.Count; i++)
                 {
-                    var pattern = new List<int>();
-                    for (int j = 0; j < basePattern.Length; j++)
-                    {
-                        for (int k = 0; k < (i + 1); k++)
-                        {
-                            pattern.Add(basePattern[j]);
-                        }
-                    }
+                    List<int> positive, negative;
+                    GetIndices(i, out positive, out negative);
 
                     int sum = 0;
 
-                    for (int j = 0, factor = 1; j < input.Count; j++, factor = factor + 1 >= pattern.Count ? 0 : factor + 1)
+                    foreach (var index in positive)
                     {
-                        sum += input[j] * pattern[factor];
+                        sum += input[index];
                     }
 
-                    var result = sum.ToString();
-                    output.Add(result[result.Length - 1] - '0');
+                    foreach (var index in negative)
+                    {
+                        sum -= input[index];
+                    }
+
+                    //hack, j = i, as you know at the beginning you will only have 0s
+
+                    //for (int j = i, factor = i + 1; j < input.Count; j++, factor = factor + 1 >= pattern.Length ? 0 : factor + 1)
+                    //{
+                    //    sum += input[j] * pattern[factor];
+                    //}
+
+                    output.Add((sum > 0 ? sum : -sum) % 10);
                 }
 
                 input = output;
             }
 
             return input;
+
+            void GetIndices(int i, out List<int> positive, out List<int> negative)
+            {
+                positive = new List<int>();
+                negative = new List<int>();
+
+                for (int rep = i; rep < input.Count; rep += 4 * (i + 1))
+                {
+                    for (int j = rep, count = 0; count < i + 1 && j < input.Count; j++, count++)
+                    {
+                        positive.Add(j);
+                    }
+
+                    for (int j = rep + 2 * (i + 1), count = 0; count < i + 1 && j < input.Count; j++, count++)
+                    {
+                        negative.Add(j);
+                    }
+                }
+            }
         }
     }
 }
