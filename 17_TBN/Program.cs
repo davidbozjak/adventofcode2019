@@ -127,11 +127,70 @@ namespace _17_TBN
                 .ToHashSet()
                 .ToList();
 
-            var shortest = pathsThatCoverAll.OrderBy(w => w.Length).First();
-
             foreach (var instruction in pathsThatCoverAll)
             {
-                
+                for (int maxLength = 20; maxLength > 1; maxLength--)
+                {
+                    var substringA = FindLongestSubstringThatRepeats(0, maxLength, instruction);
+                    var substringB = FindLongestSubstringThatRepeats(substringA.Length, maxLength, instruction);
+                    var substringC = FindLongestSubstringThatRepeats(substringA.Length + substringB.Length, maxLength, instruction);
+
+                    if (string.IsNullOrWhiteSpace(substringA)) break;
+                    if (string.IsNullOrWhiteSpace(substringB)) break;
+                    if (string.IsNullOrWhiteSpace(substringC)) break;
+
+                    var solution = instruction
+                        .Replace(substringA, "A,")
+                        .Replace(substringB, "B,")
+                        .Replace(substringC, "C,");
+
+                    //it is a solution if it doesn't contain any numbers
+                    bool containsNumbers = false;
+                    for (int i = 0; i < 9; i++)
+                    {
+                        if (solution.Contains(i.ToString()))
+                        {
+                            containsNumbers = true;
+                            break;
+                        }
+                    }
+
+                    if (!containsNumbers)
+                    {
+                        Console.WriteLine($"Found solution!");
+                        Console.WriteLine(instruction);
+                        Console.WriteLine();
+                        Console.WriteLine("Main: " + solution);
+                        Console.WriteLine("A: " + substringA);
+                        Console.WriteLine("B: " + substringB);
+                        Console.WriteLine("C: " + substringC);
+
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        return;
+                    }
+
+                    maxLength = Math.Max(Math.Max(substringA.Length, substringB.Length), substringC.Length);
+                }
+            }
+
+            string FindLongestSubstringThatRepeats(int startIndex, int maxLength, string str)
+            {
+                string substring = string.Empty;
+                for (int i = 1; i < maxLength; i++)
+                {
+                    var sub = str.Substring(startIndex, i);
+                    if (str.Substring(startIndex + i).Contains(sub))
+                    {
+                        substring = sub;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                return substring;
             }
 
             //foreach (var path in pathsThatCoverAll)
@@ -204,41 +263,57 @@ namespace _17_TBN
             // 2 = DOWN
             // 3 = LEFT
 
+            string lastMessage = string.Empty;
+
+            // Here assuming first path is always horizontal, with starting orientation always UP
+            if (robotOrientation != 0) throw new Exception();
+            if (path[0].Orientation != Orientation.Horizontal) throw new Exception();
+
+            AppendString("R");
+            AppendString((path[0].Tiles.Count - 1).ToString());
+            robotOrientation = 1;
+
             for (int i = 1; i < path.Count; i++)
             {
                 var road = path[i];
                 var prevRoad = path[i - 1];
 
-                //if ((robotOrientation == 0 && road.Orientation == Orientation.Vertical) ||
-                //    (robotOrientation == 2 && road.Orientation == Orientation.Vertical))
-                //{
-                //    // Orientation OK, just write steps
-                //    builder.Append(road.Tiles.Count);
-                //    builder.Append(",");
-                //}
-                //else if ((robotOrientation == 1 && road.Orientation == Orientation.Horizontal) ||
-                //        (robotOrientation == 3 && road.Orientation == Orientation.Horizontal))
-                //{
-                //    // Orientation OK, just write steps
-                //    builder.Append(road.Tiles.Count);
-                //    builder.Append(",");
-                //}
-                
-                if (robotOrientation == 0 && road.Orientation == Orientation.Horizontal)
+                if ((robotOrientation == 0 && road.Orientation == Orientation.Vertical) ||
+                    (robotOrientation == 2 && road.Orientation == Orientation.Vertical))
+                {
+                    // Orientation OK, just write steps, but remove last number first
+                    var prevCount = int.Parse(lastMessage.Replace(",", ""));
+
+                    builder.Remove(builder.Length - lastMessage.Length, lastMessage.Length);
+                    AppendString((road.Tiles.Count - 1 + prevCount).ToString());
+                }
+                else if ((robotOrientation == 1 && road.Orientation == Orientation.Horizontal) ||
+                        (robotOrientation == 3 && road.Orientation == Orientation.Horizontal))
+                {
+                    // Orientation OK, just write steps, but remove last number first
+                    var prevCount = int.Parse(lastMessage.Replace(",", ""));
+
+                    builder.Remove(builder.Length - lastMessage.Length, lastMessage.Length);
+                    AppendString((road.Tiles.Count - 1 + prevCount).ToString());
+                }
+                else if (robotOrientation == 0 && road.Orientation == Orientation.Horizontal)
                 {
                     bool isAnyLeft = road.Intersection1.Position.X < prevRoad.Intersection1.Position.X ||
                                      road.Intersection2.Position.X < prevRoad.Intersection1.Position.X;
 
                     if (isAnyLeft)
                     {
-                        builder.Append("L,");
+                        AppendString("L");
                         robotOrientation = 3;
                     }
                     else
                     {
-                        builder.Append("R,");
+                        AppendString("R");
                         robotOrientation = 1;
                     }
+
+                    var steps = road.Tiles.Count - 1;
+                    AppendString(steps.ToString());
                 }
                 else if (robotOrientation == 2 && road.Orientation == Orientation.Horizontal)
                 {
@@ -247,14 +322,17 @@ namespace _17_TBN
 
                     if (isAnyLeft)
                     {
-                        builder.Append("R,");
+                        AppendString("R");
                         robotOrientation = 1;
                     }
                     else
                     {
-                        builder.Append("L,");
+                        AppendString("L");
                         robotOrientation = 3;
                     }
+
+                    var steps = road.Tiles.Count - 1;
+                    AppendString(steps.ToString());
                 }
                 else if (robotOrientation == 1 && road.Orientation == Orientation.Vertical)
                 {
@@ -263,14 +341,17 @@ namespace _17_TBN
 
                     if (isAnyUp)
                     {
-                        builder.Append("L,");
-                        robotOrientation = 3;
+                        AppendString("L");
+                        robotOrientation = 0;
                     }
                     else
                     {
-                        builder.Append("R,");
-                        robotOrientation = 1;
+                        AppendString("R");
+                        robotOrientation = 2;
                     }
+
+                    var steps = road.Tiles.Count - 1;
+                    AppendString(steps.ToString());
                 }
                 else if (robotOrientation == 3 && road.Orientation == Orientation.Vertical)
                 {
@@ -279,22 +360,28 @@ namespace _17_TBN
 
                     if (isAnyUp)
                     {
-                        builder.Append("R,");
-                        robotOrientation = 1;
+                        AppendString("R");
+                        robotOrientation = 0;
                     }
                     else
                     {
-                        builder.Append("L,");
-                        robotOrientation = 3;
+                        AppendString("L");
+                        robotOrientation = 2;
                     }
-                }
 
-                builder.Append(road.Tiles.Count);
-                builder.Append(",");
+                    var steps = road.Tiles.Count - 1;
+                    AppendString(steps.ToString());
+                }
             }
 
             builder.Remove(builder.Length - 1, 1);
             return builder.ToString();
+
+            void AppendString(string str)
+            {
+                lastMessage = str + ",";
+                builder.Append(lastMessage);
+            }
         }
 
         private static void FindHorizontalRows(IEnumerable<Tile> tilesToVisit, int maxY, List<Road> roads)
