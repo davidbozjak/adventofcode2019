@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace _17_TBN
@@ -106,10 +107,6 @@ namespace _17_TBN
             // find intersections
             foreach (var road in roads)
             {
-                //var intersectingRoads = roads.Where(w => w != road && 
-                //(w.Intersection1 == road.Intersection1 || w.Intersection1 == road.Intersection2 ||
-                // w.Intersection2 == road.Intersection1 || w.Intersection2 == road.Intersection2));
-                //road.IntersectingRoads.AddRange(intersectingRoads);
 
                 road.Intersection1Roads.AddRange(roads.Where(w => w != road &&
                                                                   (road.Intersection1 == w.Intersection1 || road.Intersection1 == w.Intersection2)));
@@ -124,27 +121,23 @@ namespace _17_TBN
             var allPaths = new List<List<Road>>();
             FillAllPaths(initialPosition, startingRoad, new List<Road> { startingRoad }, allPaths, tilesToVisit.Count);
 
-            //var longestPathLengths = allPaths.Select(w => (w, w.SelectMany(road => road.Tiles).ToHashSet().Count)).OrderByDescending(w => w.Item2).Take(10).ToList();
+            var pathsThatCoverAll = allPaths
+                .Where(w => w.SelectMany(road => road.Tiles).ToHashSet().Count == tilesToVisit.Count)
+                .Select(w => ConstructInstructionFromPath(0, w))
+                .ToHashSet()
+                .ToList();
 
-            //foreach ((var path, var length) in longestPathLengths)
-            //{
-            //    Console.WriteLine($"{length}: {string.Join(", ", path.Select(w => w.Id))}");
-            //}
+            var shortest = pathsThatCoverAll.OrderBy(w => w.Length).First();
 
-            //var path1 = longestPathLengths[0].w;
-
-            //foreach (var tile in tilesToVisit)
-            //{
-            //    if (path1.SelectMany(w => w.Tiles).Contains(tile)) continue;
-            //    Console.WriteLine($"{tile.Position} : {tile.CharRepresentation}");
-            //}
-
-            var pathsThatCoverAll = allPaths.Where(w => w.SelectMany(road => road.Tiles).ToHashSet().Count == tilesToVisit.Count).ToList();
-
-            foreach (var path in pathsThatCoverAll)
+            foreach (var instruction in pathsThatCoverAll)
             {
-                Console.WriteLine($"{string.Join(", ", path.Select(w => w.Id))}");
+                
             }
+
+            //foreach (var path in pathsThatCoverAll)
+            //{
+            //    Console.WriteLine($"{string.Join(", ", path.Select(w => w.Id))}");
+            //}
 
             //long starDust = 0;
             //computer.Run(memory, null, Output);
@@ -199,6 +192,109 @@ namespace _17_TBN
             {
                 allPaths.Add(path);
             }
+        }
+
+        private static string ConstructInstructionFromPath(int robotOrientation, List<Road> path)
+        {
+            var builder = new StringBuilder();
+
+            // Orientation
+            // 0 = UP
+            // 1 = RIGHT
+            // 2 = DOWN
+            // 3 = LEFT
+
+            for (int i = 1; i < path.Count; i++)
+            {
+                var road = path[i];
+                var prevRoad = path[i - 1];
+
+                //if ((robotOrientation == 0 && road.Orientation == Orientation.Vertical) ||
+                //    (robotOrientation == 2 && road.Orientation == Orientation.Vertical))
+                //{
+                //    // Orientation OK, just write steps
+                //    builder.Append(road.Tiles.Count);
+                //    builder.Append(",");
+                //}
+                //else if ((robotOrientation == 1 && road.Orientation == Orientation.Horizontal) ||
+                //        (robotOrientation == 3 && road.Orientation == Orientation.Horizontal))
+                //{
+                //    // Orientation OK, just write steps
+                //    builder.Append(road.Tiles.Count);
+                //    builder.Append(",");
+                //}
+                
+                if (robotOrientation == 0 && road.Orientation == Orientation.Horizontal)
+                {
+                    bool isAnyLeft = road.Intersection1.Position.X < prevRoad.Intersection1.Position.X ||
+                                     road.Intersection2.Position.X < prevRoad.Intersection1.Position.X;
+
+                    if (isAnyLeft)
+                    {
+                        builder.Append("L,");
+                        robotOrientation = 3;
+                    }
+                    else
+                    {
+                        builder.Append("R,");
+                        robotOrientation = 1;
+                    }
+                }
+                else if (robotOrientation == 2 && road.Orientation == Orientation.Horizontal)
+                {
+                    bool isAnyLeft = road.Intersection1.Position.X < prevRoad.Intersection1.Position.X ||
+                                     road.Intersection2.Position.X < prevRoad.Intersection1.Position.X;
+
+                    if (isAnyLeft)
+                    {
+                        builder.Append("R,");
+                        robotOrientation = 1;
+                    }
+                    else
+                    {
+                        builder.Append("L,");
+                        robotOrientation = 3;
+                    }
+                }
+                else if (robotOrientation == 1 && road.Orientation == Orientation.Vertical)
+                {
+                    bool isAnyUp = road.Intersection1.Position.Y < prevRoad.Intersection1.Position.Y ||
+                                   road.Intersection2.Position.Y < prevRoad.Intersection1.Position.Y;
+
+                    if (isAnyUp)
+                    {
+                        builder.Append("L,");
+                        robotOrientation = 3;
+                    }
+                    else
+                    {
+                        builder.Append("R,");
+                        robotOrientation = 1;
+                    }
+                }
+                else if (robotOrientation == 3 && road.Orientation == Orientation.Vertical)
+                {
+                    bool isAnyUp = road.Intersection1.Position.Y < prevRoad.Intersection1.Position.Y ||
+                                   road.Intersection2.Position.Y < prevRoad.Intersection1.Position.Y;
+
+                    if (isAnyUp)
+                    {
+                        builder.Append("R,");
+                        robotOrientation = 1;
+                    }
+                    else
+                    {
+                        builder.Append("L,");
+                        robotOrientation = 3;
+                    }
+                }
+
+                builder.Append(road.Tiles.Count);
+                builder.Append(",");
+            }
+
+            builder.Remove(builder.Length - 1, 1);
+            return builder.ToString();
         }
 
         private static void FindHorizontalRows(IEnumerable<Tile> tilesToVisit, int maxY, List<Road> roads)
