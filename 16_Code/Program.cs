@@ -1,10 +1,7 @@
 ﻿using SantasToolbox;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace _16_TBN
 {
@@ -72,7 +69,6 @@ namespace _16_TBN
 
                 for (int i = input.Length - 1; i >= offset; i--)
                 {
-
                     if (i > (input.Length * 3 / 4))
                     {
                         // for last quater we just add up all the digits
