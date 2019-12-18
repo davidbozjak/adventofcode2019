@@ -12,6 +12,8 @@ namespace _17_TBN
     {
         static void Main(string[] _)
         {
+            //CompressInstruction("R,8,R,8,R,4,R,4,R,8,L,6,L,2,R,4,R,4,R,8,R,8,R,8,L,6,L,2,");
+
             var inputParser = new SingleLineStringInputParser<long>(long.TryParse);
             using var inputProvider = new InputProvider<long>("Input.txt", inputParser.GetValue);
 
@@ -127,52 +129,87 @@ namespace _17_TBN
                 .ToHashSet()
                 .ToList();
 
+            //var path = allPaths
+            //    .Where(w => w.SelectMany(road => road.Tiles).ToHashSet().Count == tilesToVisit.Count).OrderBy(w => w.Count).First();
+            //Console.WriteLine(string.Join(",", path.Select(w => w.Id)));
+            //Console.WriteLine(ConstructInstructionFromPath(0, path));
+
+
             foreach (var instruction in pathsThatCoverAll)
             {
-                for (int maxLength = 20; maxLength > 1; maxLength--)
+                CompressInstruction(instruction);
+            }
+
+            //foreach (var path in pathsThatCoverAll)
+            //{
+            //    Console.WriteLine($"{string.Join(", ", path.Select(w => w.Id))}");
+            //}
+
+            //long starDust = 0;
+            //computer.Run(memory, null, Output);
+
+            //printer.Print(world);
+
+
+            //void Output(long collectedStarDust)
+            //{
+            //    starDust = collectedStarDust;
+            //}
+        }
+
+        private static string CompressInstruction(string instruction)
+        {
+            for (int maxLengthA = 20; maxLengthA > 1; maxLengthA--)
+            {
+                for (int maxLengthB = 20; maxLengthB > 1; maxLengthB--)
                 {
-                    var substringA = FindLongestSubstringThatRepeats(0, maxLength, instruction);
-                    var substringB = FindLongestSubstringThatRepeats(substringA.Length, maxLength, instruction);
-                    var substringC = FindLongestSubstringThatRepeats(substringA.Length + substringB.Length, maxLength, instruction);
-
-                    if (string.IsNullOrWhiteSpace(substringA)) break;
-                    if (string.IsNullOrWhiteSpace(substringB)) break;
-                    if (string.IsNullOrWhiteSpace(substringC)) break;
-
-                    var solution = instruction
-                        .Replace(substringA, "A,")
-                        .Replace(substringB, "B,")
-                        .Replace(substringC, "C,");
-
-                    //it is a solution if it doesn't contain any numbers
-                    bool containsNumbers = false;
-                    for (int i = 0; i < 9; i++)
+                    for (int maxLengthC = 20; maxLengthC > 1; maxLengthC--)
                     {
-                        if (solution.Contains(i.ToString()))
+                        var substringA = FindLongestSubstringThatRepeats(0, maxLengthA, instruction);
+                        var substringB = FindLongestSubstringThatRepeats(substringA.Length, maxLengthB, instruction);
+                        var substringC = FindLongestSubstringThatRepeats(substringA.Length + substringB.Length, maxLengthC, instruction);
+
+                        maxLengthC = substringC.Length;
+
+                        if (string.IsNullOrWhiteSpace(substringA)) break;
+                        if (string.IsNullOrWhiteSpace(substringB)) break;
+                        if (string.IsNullOrWhiteSpace(substringC)) break;
+
+                        var solution = instruction
+                            .Replace(substringA, "A,")
+                            .Replace(substringB, "B,")
+                            .Replace(substringC, "C,");
+
+                        //it is a solution if it doesn't contain any numbers
+                        bool containsNumbers = false;
+                        for (int i = 0; i < 9; i++)
                         {
-                            containsNumbers = true;
-                            break;
+                            if (solution.Contains(i.ToString()))
+                            {
+                                containsNumbers = true;
+                                break;
+                            }
+                        }
+
+                        if (!containsNumbers)
+                        {
+                            Console.WriteLine($"Found solution!");
+                            Console.WriteLine(instruction);
+                            Console.WriteLine();
+                            Console.WriteLine("Main: " + solution);
+                            Console.WriteLine("A: " + substringA);
+                            Console.WriteLine("B: " + substringB);
+                            Console.WriteLine("C: " + substringC);
+
+                            Console.WriteLine();
+                            Console.WriteLine();
+                            return solution;
                         }
                     }
-
-                    if (!containsNumbers)
-                    {
-                        Console.WriteLine($"Found solution!");
-                        Console.WriteLine(instruction);
-                        Console.WriteLine();
-                        Console.WriteLine("Main: " + solution);
-                        Console.WriteLine("A: " + substringA);
-                        Console.WriteLine("B: " + substringB);
-                        Console.WriteLine("C: " + substringC);
-
-                        Console.WriteLine();
-                        Console.WriteLine();
-                        return;
-                    }
-
-                    maxLength = Math.Max(Math.Max(substringA.Length, substringB.Length), substringC.Length);
                 }
             }
+
+            return string.Empty;
 
             string FindLongestSubstringThatRepeats(int startIndex, int maxLength, string str)
             {
@@ -192,22 +229,6 @@ namespace _17_TBN
 
                 return substring;
             }
-
-            //foreach (var path in pathsThatCoverAll)
-            //{
-            //    Console.WriteLine($"{string.Join(", ", path.Select(w => w.Id))}");
-            //}
-
-            //long starDust = 0;
-            //computer.Run(memory, null, Output);
-
-            //printer.Print(world);
-
-
-            //void Output(long collectedStarDust)
-            //{
-            //    starDust = collectedStarDust;
-            //}
         }
 
         private static void FillAllPaths(Tile entryIntersection, Road road, List<Road> path, List<List<Road>> allPaths, int tilesToVisit)
@@ -323,12 +344,12 @@ namespace _17_TBN
                     if (isAnyLeft)
                     {
                         AppendString("R");
-                        robotOrientation = 1;
+                        robotOrientation = 3;
                     }
                     else
                     {
                         AppendString("L");
-                        robotOrientation = 3;
+                        robotOrientation = 1;
                     }
 
                     var steps = road.Tiles.Count - 1;
@@ -374,7 +395,6 @@ namespace _17_TBN
                 }
             }
 
-            builder.Remove(builder.Length - 1, 1);
             return builder.ToString();
 
             void AppendString(string str)
