@@ -13,15 +13,16 @@ namespace _17_TBN
         static void Main(string[] _)
         {
             //CompressInstruction("R,8,R,8,R,4,R,4,R,8,L,6,L,2,R,4,R,4,R,8,R,8,R,8,L,6,L,2,");
+            //CompressInstruction("R,6,L,6,L,10,L,8,L,6,L,10,L,6,R,6,L,6,L,10,L,8,L,6,L,10,L,6,R,6,L,8,L,10,R,6,R,6,L,6,L,10,L,8,L,6,L,10,L,6,R,6,L,8,L,10,R,6,R,6,L,6,L,10,R,6,L,8,L,10,R,6,");
 
             var inputParser = new SingleLineStringInputParser<long>(long.TryParse);
             using var inputProvider = new InputProvider<long>("Input.txt", inputParser.GetValue);
 
-            var world = Part1(inputProvider.ToList());
+            //var world = Part1(inputProvider.ToList());
 
-            inputProvider.Reset();
+            //inputProvider.Reset();
 
-            Part2(inputProvider.ToList(), world);
+            Part2(inputProvider.ToList());
         }
 
         private static World Part1(IList<long> programCode)
@@ -80,65 +81,90 @@ namespace _17_TBN
             }
         }
 
-        private static void Part2(IList<long> programCode, World world)
+        private static void Part2(IList<long> programCode)
         {
             var memory = new IntCodeMemory(programCode);
             memory[0] = 2;
 
             var computer = new IntCodeComputer();
 
-            var printer = new WorldPrinter();
+            // Strings done manually:
+            string main = "A,B,A,B,C,A,B,C,A,C\n";
+            string A = "R,6,L,6,L,10\n";
+            string B = "L,8,L,6,L,10,L,6\n";
+            string C = "R,6,L,8,L,10,R,6\n";
 
-            var initialPosition = world.WorldObjects.Cast<Tile>().Where(w => w.CharRepresentation == '^').First();
-            initialPosition.CharRepresentation = '#';
+            string inputToGive = main + A + B + C + "n\n";
+            int inputCount = 0;
 
-            var tilesToVisit = world.WorldObjects.Cast<Tile>().Where(w => w.CharRepresentation == '#').ToList();
+            computer.Run(memory, Input, Output);
 
-            int maxX = tilesToVisit.Select(w => w.Position.X).Max();
-            int maxY = tilesToVisit.Select(w => w.Position.Y).Max();
-
-            var roads = new List<Road>();
-
-            // break into roads
-
-            FindHorizontalRows(tilesToVisit, maxY, roads);
-            FindVerticalRows(tilesToVisit, maxX, roads);
-
-            printer.Print(world);
-
-            // find intersections
-            foreach (var road in roads)
+            long Input()
             {
-
-                road.Intersection1Roads.AddRange(roads.Where(w => w != road &&
-                                                                  (road.Intersection1 == w.Intersection1 || road.Intersection1 == w.Intersection2)));
-
-                road.Intersection2Roads.AddRange(roads.Where(w => w != road &&
-                                                                  (road.Intersection2 == w.Intersection1 || road.Intersection2 == w.Intersection2)));
+                return inputToGive[inputCount++];
             }
 
+            void Output(long output)
+            {
+                if (output > 130)
+                {
+                    // assuming > 100 is then not a ascii value
+                    Console.WriteLine(output);
+                }
+            }
 
-            var startingRoad = roads.Where(w => w.Intersection1 == initialPosition || w.Intersection2 == initialPosition).First();
+            //var printer = new WorldPrinter();
 
-            var allPaths = new List<List<Road>>();
-            FillAllPaths(initialPosition, startingRoad, new List<Road> { startingRoad }, allPaths, tilesToVisit.Count);
+            //var initialPosition = world.WorldObjects.Cast<Tile>().Where(w => w.CharRepresentation == '^').First();
+            //initialPosition.CharRepresentation = '#';
 
-            var pathsThatCoverAll = allPaths
-                .Where(w => w.SelectMany(road => road.Tiles).ToHashSet().Count == tilesToVisit.Count)
-                .Select(w => ConstructInstructionFromPath(0, w))
-                .ToHashSet()
-                .ToList();
+            //var tilesToVisit = world.WorldObjects.Cast<Tile>().Where(w => w.CharRepresentation == '#').ToList();
+
+            //int maxX = tilesToVisit.Select(w => w.Position.X).Max();
+            //int maxY = tilesToVisit.Select(w => w.Position.Y).Max();
+
+            //var roads = new List<Road>();
+
+            //// break into roads
+
+            //FindHorizontalRows(tilesToVisit, maxY, roads);
+            //FindVerticalRows(tilesToVisit, maxX, roads);
+
+            //printer.Print(world);
+
+            //// find intersections
+            //foreach (var road in roads)
+            //{
+
+            //    road.Intersection1Roads.AddRange(roads.Where(w => w != road &&
+            //                                                      (road.Intersection1 == w.Intersection1 || road.Intersection1 == w.Intersection2)));
+
+            //    road.Intersection2Roads.AddRange(roads.Where(w => w != road &&
+            //                                                      (road.Intersection2 == w.Intersection1 || road.Intersection2 == w.Intersection2)));
+            //}
+
+
+            //var startingRoad = roads.Where(w => w.Intersection1 == initialPosition || w.Intersection2 == initialPosition).First();
+
+            //var allPaths = new List<List<Road>>();
+            //FillAllPaths(initialPosition, startingRoad, new List<Road> { startingRoad }, allPaths, tilesToVisit.Count);
+
+            //var pathsThatCoverAll = allPaths
+            //    .Where(w => w.SelectMany(road => road.Tiles).ToHashSet().Count == tilesToVisit.Count)
+            //    .Select(w => ConstructInstructionFromPath(0, w))
+            //    .ToHashSet()
+            //    .ToList();
 
             //var path = allPaths
             //    .Where(w => w.SelectMany(road => road.Tiles).ToHashSet().Count == tilesToVisit.Count).OrderBy(w => w.Count).First();
             //Console.WriteLine(string.Join(",", path.Select(w => w.Id)));
             //Console.WriteLine(ConstructInstructionFromPath(0, path));
+            //Console.WriteLine(pathsThatCoverAll.OrderBy(w => w.Length).First());
 
-
-            foreach (var instruction in pathsThatCoverAll)
-            {
-                CompressInstruction(instruction);
-            }
+            //foreach (var instruction in pathsThatCoverAll)
+            //{
+            //    CompressInstruction(instruction);
+            //}
 
             //foreach (var path in pathsThatCoverAll)
             //{
@@ -175,10 +201,14 @@ namespace _17_TBN
                         if (string.IsNullOrWhiteSpace(substringB)) break;
                         if (string.IsNullOrWhiteSpace(substringC)) break;
 
-                        var solution = instruction
-                            .Replace(substringA, "A,")
-                            .Replace(substringB, "B,")
-                            .Replace(substringC, "C,");
+                        var odered = new List<(string substring, string replacement)> { (substringA, "A,"), (substringB, "B,"), (substringC, "C,") }.OrderByDescending(w => w.substring.Length);
+
+                        string solution = instruction;
+
+                        foreach ((string substring, string replacement) in odered)
+                        {
+                            solution = solution.Replace(substring, replacement);
+                        }
 
                         //it is a solution if it doesn't contain any numbers
                         bool containsNumbers = false;
