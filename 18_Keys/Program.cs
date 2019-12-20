@@ -26,13 +26,58 @@ namespace _18_Keys
 
             Tile location = world.Entrance;
 
-            int steps = 0;
-            while (world.Keys.Count > 0)
-            {
-                var options = world.Keys.Select(w => GetPath(w.PositionTile)).Where(w => w != null);
-                var selectedPath = options.OrderBy(w => w.Count).First();
+            Console.WriteLine($"Keys to pick up: {world.Keys.Count}");
 
-                foreach (var tile in selectedPath)
+            int steps = GetStepsToFinish(location, world);
+
+            Console.WriteLine($"Picked up all keys after {steps} steps");
+        }
+
+        static int maxPrintedLevel = 0;
+        static Dictionary<string, int> alreadyComputedSubProblems = new Dictionary<string, int>();
+
+        private static int GetStepsToFinish(Tile location, World world, IEnumerable<Tile>? pathToTake = null)
+        {
+            int steps = 0;
+
+            if (pathToTake != null)
+            {
+                WalkPath(pathToTake);
+            }
+
+            if (world.Keys.Count > 0)
+            {
+                var options = world.Keys.Select(w => (w.Identifier, GetPath(w.PositionTile))).Where(w => w.Item2 != null).ToList();
+                
+                var strOptions = string.Join(",", options.Select(w => w.Identifier).OrderBy(w => w));
+                var strGates = string.Join(",", world.Gates.Select(w => w.Identifier).OrderBy(w => w));
+
+                var key = $"{location.Position} Options:[{strOptions}] Gates:[{strGates}]";
+
+                if (alreadyComputedSubProblems.ContainsKey(key))
+                    return steps + alreadyComputedSubProblems[key];
+
+                int bestOption = int.MaxValue;
+                foreach (var (identifier, option) in options)
+                {
+                    int stepsForOption = GetStepsToFinish(location, world.Clone(), option);
+
+                    if (stepsForOption < bestOption)
+                    {
+                        bestOption = stepsForOption;
+                    }
+                }
+
+                steps += bestOption;
+
+                alreadyComputedSubProblems[key] = bestOption;
+            }
+            
+            return steps;
+
+            void WalkPath(IEnumerable<Tile> path)
+            {
+                foreach (var tile in path)
                 {
                     var key = world.KeyOrDefault(tile);
                     if (key != null)
@@ -47,8 +92,6 @@ namespace _18_Keys
                     steps++;
                 }
             }
-
-            Console.WriteLine($"Picked up all keys after {steps} steps");
 
             IList<Tile>? GetPath(Tile target)
             {
@@ -131,7 +174,7 @@ namespace _18_Keys
 
         private static World ParseWorld(IEnumerator<string> input)
         {
-            var world = new World();
+            var world = new World(true);
 
             for (int y = 0; input.MoveNext(); y++)
             {
@@ -231,6 +274,7 @@ namespace _18_Keys
 
         public bool IsWall { get; set; }
     }
+
     class World : IWorld
     {
         private readonly UniqueFactory<Point, Tile> tileFactory = new UniqueFactory<Point, Tile>(p => new Tile(p));
@@ -252,9 +296,21 @@ namespace _18_Keys
 
         public List<Gate> Gates { get; } = new List<Gate>();
 
-        public World()
-        {
+        public bool PrintMessages { get; } = false;
 
+        public World(bool printMessages)
+        {
+            this.PrintMessages = printMessages;
+        }
+
+        private World(World world)
+        {
+            this.tileFactory = world.tileFactory;
+
+            this.Keys = world.Keys.ToList();
+            this.Gates = world.Gates.ToList();
+
+            this.PrintMessages = false;
         }
 
         public Tile GetTile(Point position) => this.tileFactory.GetOrCreateInstance(position);
@@ -269,14 +325,29 @@ namespace _18_Keys
 
         public void Unlock(Key key)
         {
+            this.Keys.Remove(key);
+
+            if (this.PrintMessages)
+            {
+                Console.WriteLine($"Picked up key {key.Identifier}");
+            }
+
             var gate = this.Gates.FirstOrDefault(w => w.Identifier == key.Identifier);
 
             if (gate != null)
             {
+                if (this.PrintMessages)
+                {
+                    Console.WriteLine($"Unlocked gate {gate.Identifier}");
+                }
+
                 this.Gates.Remove(gate);
             }
+        }
 
-            this.Keys.Remove(key);
+        public World Clone()
+        {
+            return new World(this);
         }
     }
 }
