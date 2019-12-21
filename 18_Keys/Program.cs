@@ -8,6 +8,8 @@ namespace _18_Keys
 {
     class Program
     {
+        static Dictionary<string, int> alreadyComputedSubProblems = new Dictionary<string, int>();
+
         static void Main(string[] args)
         {
             using var inputProvider = new InputProvider<string>("Input.txt", (string? input, out string value) => { var isnull = string.IsNullOrWhiteSpace(input); value = input ?? string.Empty; return !isnull; });
@@ -17,22 +19,25 @@ namespace _18_Keys
             var printer = new WorldPrinter();
             printer.Print(world);
 
-            //Part1(world);
+            Part1(world);
+
+            alreadyComputedSubProblems = new Dictionary<string, int>();
+
             Part2(world);
         }
 
-        //private static void Part1(World world)
-        //{
-        //    if (world.Entrance == null) throw new Exception("Invalidly parsed world, no entrance");
+        private static void Part1(World world)
+        {
+            if (world.Entrance == null) throw new Exception("Invalidly parsed world, no entrance");
 
-        //    Tile location = world.Entrance;
+            Tile location = world.Entrance;
 
-        //    Console.WriteLine($"Keys to pick up: {world.Keys.Count}");
+            Console.WriteLine($"Keys to pick up: {world.Keys.Count}");
 
-        //    int steps = GetStepsToFinish(new List<Tile> { location }, world);
+            int steps = GetStepsToFinish(new[] { new Robot(1, world.Entrance) }, world);
 
-        //    Console.WriteLine($"Picked up all keys after {steps} steps");
-        //}
+            Console.WriteLine($"Picked up all keys after {steps} steps");
+        }
 
         private static void Part2(World world)
         {
@@ -75,8 +80,6 @@ namespace _18_Keys
 
             Console.WriteLine($"Picked up all keys after {steps} steps");
         }
-
-        static Dictionary<string, int> alreadyComputedSubProblems = new Dictionary<string, int>();
 
         private static int GetStepsToFinish(Robot[] robots, World world, (string robotIdentifier, IEnumerable<Tile> pathToTake)? selectedOption = null)
         {
