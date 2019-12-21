@@ -203,7 +203,7 @@ namespace _18_Keys
 
         private static World ParseWorld(IEnumerator<string> input)
         {
-            var world = new World(true);
+            var world = new World();
 
             for (int y = 0; input.MoveNext(); y++)
             {
@@ -395,11 +395,8 @@ namespace _18_Keys
 
         public List<Gate> Gates { get; } = new List<Gate>();
 
-        public bool PrintMessages { get; } = false;
-
-        public World(bool printMessages)
+        public World()
         {
-            this.PrintMessages = printMessages;
         }
 
         private World(World world)
@@ -408,8 +405,6 @@ namespace _18_Keys
 
             this.Keys = world.Keys.ToList();
             this.Gates = world.Gates.ToList();
-
-            this.PrintMessages = false;
         }
 
         public Tile GetTile(Point position) => this.tileFactory.GetOrCreateInstance(position);
@@ -434,20 +429,10 @@ namespace _18_Keys
         {
             this.Keys.Remove(key);
 
-            if (this.PrintMessages)
-            {
-                Console.WriteLine($"Picked up key {key.Identifier}");
-            }
-
             var gate = this.Gates.FirstOrDefault(w => w.Identifier == key.Identifier);
 
             if (gate != null)
             {
-                if (this.PrintMessages)
-                {
-                    Console.WriteLine($"Unlocked gate {gate.Identifier}");
-                }
-
                 this.Gates.Remove(gate);
             }
         }
