@@ -17,50 +17,101 @@ namespace _18_Keys
             var printer = new WorldPrinter();
             printer.Print(world);
 
-            Part1(world);
+            //Part1(world);
+            Part2(world);
         }
 
-        private static void Part1(World world)
+        //private static void Part1(World world)
+        //{
+        //    if (world.Entrance == null) throw new Exception("Invalidly parsed world, no entrance");
+
+        //    Tile location = world.Entrance;
+
+        //    Console.WriteLine($"Keys to pick up: {world.Keys.Count}");
+
+        //    int steps = GetStepsToFinish(new List<Tile> { location }, world);
+
+        //    Console.WriteLine($"Picked up all keys after {steps} steps");
+        //}
+
+        private static void Part2(World world)
         {
             if (world.Entrance == null) throw new Exception("Invalidly parsed world, no entrance");
 
-            Tile location = world.Entrance;
+            // Edit the world
+
+            Tile originalEntrance = world.Entrance;
+
+            var newWalls = world.GetNeighbours(originalEntrance).ToList();
+            newWalls.Add(originalEntrance);
+
+            newWalls.ForEach(w =>
+            {
+                w.CharRepresentation = '#';
+                w.IsWall = true;
+            });
+
+            var newEntrances = new List<Tile>
+            {
+                world.GetTile(originalEntrance.Position.X - 1, originalEntrance.Position.Y - 1),
+                world.GetTile(originalEntrance.Position.X + 1, originalEntrance.Position.Y - 1),
+                world.GetTile(originalEntrance.Position.X - 1, originalEntrance.Position.Y + 1),
+                world.GetTile(originalEntrance.Position.X + 1, originalEntrance.Position.Y + 1),
+            };
+
+            newEntrances.ForEach(w =>
+            {
+                w.CharRepresentation = '@';
+                w.IsWall = false;
+            });
+
+            var printer = new WorldPrinter();
+            printer.Print(world);
 
             Console.WriteLine($"Keys to pick up: {world.Keys.Count}");
 
-            int steps = GetStepsToFinish(location, world);
+            int robotCount = 0;
+            int steps = GetStepsToFinish(newEntrances.Select(w => new Robot(++robotCount, w)).ToArray(), world);
 
             Console.WriteLine($"Picked up all keys after {steps} steps");
         }
 
-        static int maxPrintedLevel = 0;
         static Dictionary<string, int> alreadyComputedSubProblems = new Dictionary<string, int>();
 
-        private static int GetStepsToFinish(Tile location, World world, IEnumerable<Tile>? pathToTake = null)
+        private static int GetStepsToFinish(Robot[] robots, World world, (string robotIdentifier, IEnumerable<Tile> pathToTake)? selectedOption = null)
         {
             int steps = 0;
 
-            if (pathToTake != null)
+            if (selectedOption != null)
             {
-                WalkPath(pathToTake);
+                var robot = robots.Where(w => w.Identifier == selectedOption.Value.robotIdentifier).First();
+                steps = robot.WalkPath(selectedOption.Value.pathToTake, world);
             }
 
             if (world.Keys.Count > 0)
             {
-                var options = world.Keys.Select(w => (w.Identifier, GetPath(w.PositionTile))).Where(w => w.Item2 != null).ToList();
-                
+                var options = robots.SelectMany(robot =>
+                        world.Keys.Select(w => 
+                        new
+                        {
+                            Robot = robot,
+                            w.Identifier,
+                            Path = GetPath(robot.PositionTile, w.PositionTile)
+                        }).Where(w => w.Path != null && w.Path.Count > 0)).ToList();
+
+                var strRobots = string.Join(",", robots.Select(w => w.Identifier + w.Position));
                 var strOptions = string.Join(",", options.Select(w => w.Identifier).OrderBy(w => w));
                 var strGates = string.Join(",", world.Gates.Select(w => w.Identifier).OrderBy(w => w));
 
-                var key = $"{location.Position} Options:[{strOptions}] Gates:[{strGates}]";
+                var key = $"{strRobots} Options:[{strOptions}] Gates:[{strGates}]";
 
                 if (alreadyComputedSubProblems.ContainsKey(key))
                     return steps + alreadyComputedSubProblems[key];
 
                 int bestOption = int.MaxValue;
-                foreach (var (identifier, option) in options)
+                foreach (var option in options)
                 {
-                    int stepsForOption = GetStepsToFinish(location, world.Clone(), option);
+                    int stepsForOption = GetStepsToFinish(robots.Select(w => w.Clone()).ToArray(), world.Clone(), (option.Robot.Identifier, option.Path));
 
                     if (stepsForOption < bestOption)
                     {
@@ -68,35 +119,18 @@ namespace _18_Keys
                     }
                 }
 
+                alreadyComputedSubProblems[key] = bestOption;
+
                 steps += bestOption;
 
-                alreadyComputedSubProblems[key] = bestOption;
+                if (steps < 0) 
+                    steps = int.MaxValue;
             }
-            
+
             return steps;
 
-            void WalkPath(IEnumerable<Tile> path)
+            IList<Tile>? GetPath(Tile start, Tile target)
             {
-                foreach (var tile in path)
-                {
-                    var key = world.KeyOrDefault(tile);
-                    if (key != null)
-                    {
-                        world.Unlock(key);
-                    }
-
-                    var gate = world.GateOrDefault(tile);
-                    if (gate != null) throw new Exception($"Invalid path, gate {gate.Identifier} is locked!");
-
-                    location = tile;
-                    steps++;
-                }
-            }
-
-            IList<Tile>? GetPath(Tile target)
-            {
-                var start = location;
-
                 var cameFrom = new Dictionary<Tile, Tile>();
                 var openSet = new List<Tile> { start };
 
@@ -117,7 +151,7 @@ namespace _18_Keys
 
                     openSet.Remove(current);
 
-                    foreach (var neighbour in Neighbours(current))
+                    foreach (var neighbour in world.GetNeighbours(current))
                     {
                         if (world.GateOrDefault(neighbour) != null) continue;
                         if (neighbour.IsWall) continue;
@@ -140,14 +174,6 @@ namespace _18_Keys
 
                 // Not found!
                 return null;
-
-                IEnumerable<Tile> Neighbours(Tile tile)
-                {
-                    yield return world.GetTile(tile.Position.Up());
-                    yield return world.GetTile(tile.Position.Down());
-                    yield return world.GetTile(tile.Position.Left());
-                    yield return world.GetTile(tile.Position.Right());
-                }
 
                 int Heuristic(Tile tile)
                 {
@@ -210,6 +236,76 @@ namespace _18_Keys
             }
 
             return world;
+        }
+    }
+
+    class Robot : IWorldObject
+    {
+        public string Identifier { get; }
+
+        private Tile? positionTile;
+        public Tile PositionTile 
+        {
+            get
+            {
+                if (this.positionTile == null) throw new Exception();
+                return this.positionTile;
+            }
+            private set
+            {
+                if (this.positionTile != null) this.positionTile.CharRepresentation = '.';
+                this.positionTile = value;
+                this.positionTile.CharRepresentation = this.Identifier[0];
+            }
+        }
+
+        public Point Position => this.PositionTile.Position;
+
+        public char CharRepresentation
+        {
+            get => this.PositionTile.CharRepresentation;
+            private set => this.PositionTile.CharRepresentation = value;
+        }
+
+        public int Z => 2;
+
+        public Robot(int id, Tile positionTile)
+        {
+            this.Identifier = id.ToString();
+            this.PositionTile = positionTile;
+        }
+
+        private Robot(Robot robot)
+        {
+            this.Identifier = robot.Identifier;
+            this.positionTile = robot.positionTile;
+        }
+
+        public int WalkPath(IEnumerable<Tile> path, World world)
+        {
+            int steps = 0;
+
+            foreach (var tile in path)
+            {
+                var key = world.KeyOrDefault(tile);
+                if (key != null)
+                {
+                    world.Unlock(key);
+                }
+
+                var gate = world.GateOrDefault(tile);
+                if (gate != null) throw new Exception($"Invalid path, gate {gate.Identifier} is locked!");
+
+                this.PositionTile = tile;
+                steps++;
+            }
+
+            return steps;
+        }
+
+        public Robot Clone()
+        {
+            return new Robot(this);
         }
     }
 
@@ -318,6 +414,14 @@ namespace _18_Keys
         public Tile GetTile((int x, int y) position) => GetTile(new Point(position.x, position.y));
 
         public Tile GetTile(int x, int y) => GetTile(new Point(x, y));
+
+        public IEnumerable<Tile> GetNeighbours(Tile tile)
+        {
+            yield return this.GetTile(tile.Position.Up());
+            yield return this.GetTile(tile.Position.Down());
+            yield return this.GetTile(tile.Position.Left());
+            yield return this.GetTile(tile.Position.Right());
+        }
 
         public Gate? GateOrDefault(Tile tile) => this.Gates.FirstOrDefault(w => w.PositionTile == tile);
 
