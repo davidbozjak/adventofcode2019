@@ -17,57 +17,65 @@ namespace _20_Maze
             var printer = new WorldPrinter();
             printer.Print(world);
 
-            Part1(world);
+            Solve(world, false);
+            Console.ReadKey();
+            Solve(world, true);
         }
 
-        private static void Part1(World world)
+        private static void Solve(World world, bool isRecursive)
         {
             if (world.Entrance == null) throw new ArgumentException();
             if (world.Exit == null) throw new ArgumentException();
 
-            var path = GetPath(world.Entrance, world.Exit, world);
+            var path = GetPath(isRecursive, world.Entrance, world.Exit, world);
 
+            var printer = new WorldPrinter();
+            
             if (path == null)
             {
+                printer.Print(world);
                 Console.WriteLine("Fail :(");
             }
             else
             {
                 path.ToList().ForEach(w => w.CharRepresentation = 'o');
-
-                var printer = new WorldPrinter();
                 printer.Print(world);
 
-                Console.WriteLine("Part 1 Complete");
+                Console.WriteLine("Part 2 Complete");
                 Console.WriteLine($"Path length: {path.Count}");
             }
         }
 
-        private static IList<Tile>? GetPath(Tile start, Tile target, World world)
+        private static IList<Tile>? GetPath(bool isRecursive, Tile start, Tile target, World world)
         {
-            var cameFrom = new Dictionary<Tile, Tile>();
-            var openSet = new List<Tile> { start };
+            var cameFrom = new Dictionary<Tile3D, Tile3D>();
+            
+            var start3d = new Tile3D(start, 0);
 
-            var gScore = new Dictionary<Tile, int>();
-            gScore[start] = 0;
+            var openSet = new List<Tile3D> { start3d };
 
-            var fScore = new Dictionary<Tile, int>();
-            fScore[start] = Heuristic(start);
+            var gScore = new Dictionary<Tile3D, int>();
+            gScore[start3d] = 0;
+
+            var fScore = new Dictionary<Tile3D, int>();
+            fScore[start3d] = Heuristic(start3d);
 
             while (openSet.Count > 0)
             {
                 var current = openSet.OrderBy(w => fScore[w]).First();
+                
+                current.Tile.CharRepresentation = 'v';
 
-                if (current == target)
+                if (current.Tile == target && (!isRecursive || (isRecursive && current.Level == 0)))
                 {
                     return ReconstructPath(current);
                 }
 
                 openSet.Remove(current);
 
-                foreach (var neighbour in world.GetNeighbours(current))
+                foreach (var neighbour in world.Get3DNeighbours(current, isRecursive))
                 {
-                    if (!neighbour.IsWalkable) continue;
+                    if (!neighbour.Tile.IsWalkable) continue;
 
                     var tentativeScore = gScore[current] + 1;
 
@@ -88,22 +96,26 @@ namespace _20_Maze
             // Not found!
             return null;
 
-            int Heuristic(Tile tile)
+            int Heuristic(Tile3D tile)
             {
-                // make heuristic always prefer gates in the world
-                if (world.GateOrDefault(tile) != null) return 0;
+                var manhattanDistance = Math.Abs(tile.X - target.Position.X) +
+                    Math.Abs(tile.Y - target.Position.Y);
 
-                // return menhattan distance as heuristic
-                return Math.Abs(tile.Position.X - target.Position.X) +
-                    Math.Abs(tile.Position.Y - target.Position.Y);
+                if (isRecursive)
+                {
+                    // add third dimension
+                    manhattanDistance += tile.Level * 100;
+                }
+
+                return manhattanDistance;
             }
 
-            IList<Tile> ReconstructPath(Tile current)
+            IList<Tile> ReconstructPath(Tile3D current)
             {
-                var path = new List<Tile> { current };
+                var path = new List<Tile> { current.Tile };
                 while (cameFrom.ContainsKey(current))
                 {
-                    path.Add(cameFrom[current]);
+                    path.Add(cameFrom[current].Tile);
                     current = cameFrom[current];
                 }
 
@@ -155,7 +167,7 @@ namespace _20_Maze
 
                     if (!world.AreNeighbours(tile1, tile2)) continue;
 
-                    (Tile first, Tile second) = tile1.Position.ReadingOrder() > tile2.Position.ReadingOrder() ?
+                    (Tile first, Tile second) = tile1.Position.ReadingOrder() < tile2.Position.ReadingOrder() ?
                         (tile1, tile2) : (tile2, tile1);
 
                     string gateLabel = first.CharRepresentation.ToString() + second.CharRepresentation.ToString();
@@ -170,7 +182,30 @@ namespace _20_Maze
                     if (world.Gates.Any(w => w.Identifier == gateLabel && w.PositionTile == gateEntrance))
                         continue;
 
-                    world.Gates.Add(new Gate(gateLabel, gateEntrance));
+                    var gate = new Gate(gateLabel, gateEntrance);
+
+                    gate.IncreasingLevel = true;
+                    //set to false if on edge
+                    int maxX = world.WorldObjects.Select(w => w.Position.X).Max() - 1;
+                    int maxY = world.WorldObjects.Select(w => w.Position.Y).Max() - 1;
+                    if (tile1.Position.X == 0)
+                    {
+                        gate.IncreasingLevel = false;
+                    }
+                    else if (tile1.Position.Y == 0)
+                    {
+                        gate.IncreasingLevel = false;
+                    }
+                    else if (tile2.Position.X == maxX)
+                    {
+                        gate.IncreasingLevel = false;
+                    }
+                    else if (tile2.Position.Y == maxY)
+                    {
+                        gate.IncreasingLevel = false;
+                    }
+
+                    world.Gates.Add(gate);
                 }
             }
 
@@ -185,7 +220,8 @@ namespace _20_Maze
             for (int i = 0; i < world.Gates.Count; i++)
             {
                 var gateTile = world.Gates[i];
-                gateTile.CharRepresentation = (char)(i + 'a');
+                //gateTile.CharRepresentation = (char)(i + 'a');
+                gateTile.CharRepresentation = gateTile.IncreasingLevel ? '+' : '-';
             }
 
             return world;
@@ -207,6 +243,8 @@ namespace _20_Maze
         }
 
         public int Z => 2;
+
+        public bool IncreasingLevel { get; set; }
 
         public Gate(string identifier, Tile positionTile)
         {
@@ -232,9 +270,25 @@ namespace _20_Maze
         public bool IsWalkable { get; set; } = false;
     }
 
+    class Tile3D
+    {
+        public Tile Tile { get; }
+        public int X => this.Tile.Position.X;
+        public int Y => this.Tile.Position.Y;
+
+        public int Level { get; set; }
+
+        public Tile3D(Tile tile, int level)
+        {
+            this.Tile = tile;
+            this.Level = level;
+        }
+    }
+
     class World : IWorld
     {
         private readonly UniqueFactory<Point, Tile> tileFactory = new UniqueFactory<Point, Tile>(p => new Tile(p));
+        private readonly UniqueFactory<(int x, int y, int level), Tile3D> tile3dFactory;
 
         public IEnumerable<IWorldObject> WorldObjects
         {
@@ -255,11 +309,13 @@ namespace _20_Maze
 
         public World()
         {
+            this.tile3dFactory = new UniqueFactory<(int x, int y, int level), Tile3D>(w => new Tile3D(this.GetTile(w.x, w.y), w.level));
         }
 
         private World(World world)
         {
             this.tileFactory = world.tileFactory;
+            this.tile3dFactory = world.tile3dFactory;
 
             this.Gates = world.Gates.ToList();
         }
@@ -276,17 +332,34 @@ namespace _20_Maze
             yield return this.GetTile(tile.Position.Down());
             yield return this.GetTile(tile.Position.Left());
             yield return this.GetTile(tile.Position.Right());
+        }
 
-            var gate = this.GateOrDefault(tile);
+        public IEnumerable<Tile3D> Get3DNeighbours(Tile3D tile, bool isRecursive)
+        {
+            var gate = this.GateOrDefault(tile.Tile);
 
             if (gate != null)
             {
-                var otherGate = this.Gates
+                if (!isRecursive || gate.IncreasingLevel || tile.Level > 0)
+                {
+                    Gate otherGate = GetOtherGate(gate);
+                    var newLevel = tile.Level + (gate.IncreasingLevel ? 1 : -1);
+                    yield return tile3dFactory.GetOrCreateInstance((otherGate.Position.X, otherGate.Position.Y, newLevel));
+                }
+            }
+
+            foreach (var neighbour3d in this.GetNeighbours(tile.Tile))
+            {
+                yield return tile3dFactory.GetOrCreateInstance((neighbour3d.Position.X, neighbour3d.Position.Y, tile.Level));
+            }
+        }
+
+        public Gate GetOtherGate(Gate gate)
+        {
+            return this.Gates
                     .Where(w => w != gate)
                     .Where(w => w.Identifier == gate.Identifier)
                     .First();
-                yield return otherGate.PositionTile;
-            }
         }
 
         public bool AreNeighbours(Tile tile1, Tile tile2)
