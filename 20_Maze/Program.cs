@@ -22,7 +22,95 @@ namespace _20_Maze
 
         private static void Part1(World world)
         {
+            if (world.Entrance == null) throw new ArgumentException();
+            if (world.Exit == null) throw new ArgumentException();
 
+            var path = GetPath(world.Entrance, world.Exit, world);
+
+            if (path == null)
+            {
+                Console.WriteLine("Fail :(");
+            }
+            else
+            {
+                path.ToList().ForEach(w => w.CharRepresentation = 'o');
+
+                var printer = new WorldPrinter();
+                printer.Print(world);
+
+                Console.WriteLine("Part 1 Complete");
+                Console.WriteLine($"Path length: {path.Count}");
+            }
+        }
+
+        private static IList<Tile>? GetPath(Tile start, Tile target, World world)
+        {
+            var cameFrom = new Dictionary<Tile, Tile>();
+            var openSet = new List<Tile> { start };
+
+            var gScore = new Dictionary<Tile, int>();
+            gScore[start] = 0;
+
+            var fScore = new Dictionary<Tile, int>();
+            fScore[start] = Heuristic(start);
+
+            while (openSet.Count > 0)
+            {
+                var current = openSet.OrderBy(w => fScore[w]).First();
+
+                if (current == target)
+                {
+                    return ReconstructPath(current);
+                }
+
+                openSet.Remove(current);
+
+                foreach (var neighbour in world.GetNeighbours(current))
+                {
+                    if (!neighbour.IsWalkable) continue;
+
+                    var tentativeScore = gScore[current] + 1;
+
+                    if (!gScore.ContainsKey(neighbour) || tentativeScore < gScore[neighbour])
+                    {
+                        cameFrom[neighbour] = current;
+                        gScore[neighbour] = tentativeScore;
+                        fScore[neighbour] = tentativeScore + Heuristic(neighbour);
+
+                        if (!openSet.Contains(neighbour))
+                        {
+                            openSet.Add(neighbour);
+                        }
+                    }
+                }
+            }
+
+            // Not found!
+            return null;
+
+            int Heuristic(Tile tile)
+            {
+                // make heuristic always prefer gates in the world
+                if (world.GateOrDefault(tile) != null) return 0;
+
+                // return menhattan distance as heuristic
+                return Math.Abs(tile.Position.X - target.Position.X) +
+                    Math.Abs(tile.Position.Y - target.Position.Y);
+            }
+
+            IList<Tile> ReconstructPath(Tile current)
+            {
+                var path = new List<Tile> { current };
+                while (cameFrom.ContainsKey(current))
+                {
+                    path.Add(cameFrom[current]);
+                    current = cameFrom[current];
+                }
+
+                path.Reverse();
+
+                return path.Skip(1).ToList();
+            }
         }
 
         private static World ParseWorld(IEnumerator<string> input, string entranceLabel, string exitLabel)
@@ -79,8 +167,25 @@ namespace _20_Maze
 
                     var gateEntrance = walkableNeighbours[0];
 
+                    if (world.Gates.Any(w => w.Identifier == gateLabel && w.PositionTile == gateEntrance))
+                        continue;
+
                     world.Gates.Add(new Gate(gateLabel, gateEntrance));
                 }
+            }
+
+            var entrance = world.Gates.Where(w => w.Identifier == entranceLabel).First();
+            world.Entrance = entrance.PositionTile;
+            world.Gates.Remove(entrance);
+
+            var exit = world.Gates.Where(w => w.Identifier == exitLabel).First();
+            world.Exit = exit.PositionTile;
+            world.Gates.Remove(exit);
+
+            for (int i = 0; i < world.Gates.Count; i++)
+            {
+                var gateTile = world.Gates[i];
+                gateTile.CharRepresentation = (char)(i + 'a');
             }
 
             return world;
@@ -98,7 +203,7 @@ namespace _20_Maze
         public char CharRepresentation
         {
             get => this.PositionTile.CharRepresentation;
-            private set => this.PositionTile.CharRepresentation = value;
+            set => this.PositionTile.CharRepresentation = value;
         }
 
         public int Z => 2;
@@ -171,6 +276,17 @@ namespace _20_Maze
             yield return this.GetTile(tile.Position.Down());
             yield return this.GetTile(tile.Position.Left());
             yield return this.GetTile(tile.Position.Right());
+
+            var gate = this.GateOrDefault(tile);
+
+            if (gate != null)
+            {
+                var otherGate = this.Gates
+                    .Where(w => w != gate)
+                    .Where(w => w.Identifier == gate.Identifier)
+                    .First();
+                yield return otherGate.PositionTile;
+            }
         }
 
         public bool AreNeighbours(Tile tile1, Tile tile2)
