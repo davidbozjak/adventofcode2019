@@ -27,7 +27,7 @@ namespace _21_Springdroid
             var memory = new IntCodeMemory(programCode);
             var computer = new IntCodeComputer();
 
-            string instruction = "NOT D J\n";
+            string instruction = "NOT C T\nAND D T\nOR T J\nNOT A T\nOR T J";
             int instructionCount = 0;
 
             computer.Run(memory, PassInstructionToSpringdroid, Output);
@@ -38,12 +38,20 @@ namespace _21_Springdroid
                 {
                     return instruction[instructionCount++];
                 }
-                else return "WALK\n"[instructionCount++ - instruction.Length];
+                else return "\nWALK\n"[instructionCount++ - instruction.Length];
             }
 
             void Output(long output)
             {
-                Console.Write((char)output);
+                if (output < char.MaxValue)
+                {
+                    Console.Write((char)output);
+                }
+                else
+                {
+                    Console.WriteLine("Made it accross! Part 1 Complete.");
+                    Console.WriteLine($"Damage to hull: {output}");
+                }
             }
         }
 
