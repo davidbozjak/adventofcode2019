@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace _21_Springdroid
 {
@@ -17,48 +15,91 @@ namespace _21_Springdroid
 
             Part1(inputProvider.ToList());
 
-            //inputProvider.Reset();
+            Console.WriteLine("Press any key for Part 2");
+            Console.ReadKey();
 
-            //Part2(inputProvider.ToList());
+            inputProvider.Reset();
+
+            Part2(inputProvider.ToList());
         }
 
         private static void Part1(IList<long> programCode)
         {
+            string springProgram = "NOT C T\nAND D T\nOR T J\nNOT A T\nOR T J";
+
+            RunSpringboardInstructions(springProgram, false, programCode);
+        }
+
+        private static void Part2(IList<long> programCode)
+        {
+            string a = "NOT C T\nAND D T\nAND H T\nOR T J\n";
+            string b = "NOT B T\nAND D T\nOR T J\n";
+            string hailMaryPass = "NOT A T\nOR T J\n";
+
+            string springProgram =
+                a +
+                b +
+                hailMaryPass;
+
+            RunSpringboardInstructions(springProgram, true, programCode);
+        }
+
+        private static void RunSpringboardInstructions(string springProgram, bool run, IList<long> programCode)
+        {
+            springProgram = springProgram.Trim();
             var memory = new IntCodeMemory(programCode);
             var computer = new IntCodeComputer();
+            var mode = run ? "RUN" : "WALK";
 
-            string instruction = "NOT C T\nAND D T\nOR T J\nNOT A T\nOR T J";
             int instructionCount = 0;
 
             computer.Run(memory, PassInstructionToSpringdroid, Output);
 
             long PassInstructionToSpringdroid()
             {
-                if (instructionCount < instruction.Length)
+                if (instructionCount < springProgram.Length)
                 {
-                    return instruction[instructionCount++];
+                    return springProgram[instructionCount++];
                 }
-                else return "\nWALK\n"[instructionCount++ - instruction.Length];
-            }
-
-            void Output(long output)
-            {
-                if (output < char.MaxValue)
-                {
-                    Console.Write((char)output);
-                }
-                else
-                {
-                    Console.WriteLine("Made it accross! Part 1 Complete.");
-                    Console.WriteLine($"Damage to hull: {output}");
-                }
+                else return $"\n{mode}\n"[instructionCount++ - springProgram.Length];
             }
         }
 
-        private static void Part2(IList<long> programCode)
+        static char prevChar = (char)0;
+        static int pos = 0;
+        static int columnCount = 0;
+
+        private static void Output(long output)
         {
-            var memory = new IntCodeMemory(programCode);
-            var computer = new IntCodeComputer();
+            if (output < char.MaxValue)
+            {
+                char receivedChar = (char)output;
+
+                if (receivedChar == '@')
+                {
+                    pos = columnCount;
+                }
+
+                if (receivedChar == 10)
+                {
+                    columnCount = 0;
+                }
+
+                if (prevChar == 10 && receivedChar == 10)
+                {
+                    Console.Write(new string(' ', pos));
+                    Console.WriteLine("ABCDEFGHI");
+                }
+                prevChar = receivedChar;
+
+                Console.Write(receivedChar);
+                columnCount++;
+            }
+            else
+            {
+                Console.WriteLine("Made it accross!");
+                Console.WriteLine($"Damage to hull: {output}");
+            }
         }
 
         class Tile : IWorldObject
