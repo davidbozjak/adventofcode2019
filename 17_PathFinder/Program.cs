@@ -4,9 +4,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace _17_TBN
+namespace _17_PathFinder
 {
     class Program
     {
@@ -104,7 +103,6 @@ namespace _17_TBN
                 road.Intersection2Roads.AddRange(roads.Where(w => w != road &&
                                                                   (road.Intersection2 == w.Intersection1 || road.Intersection2 == w.Intersection2)));
             }
-
 
             var startingRoad = roads.Where(w => w.Intersection1 == initialPosition || w.Intersection2 == initialPosition).First();
 
