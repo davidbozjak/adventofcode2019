@@ -12,17 +12,14 @@ namespace _17_TBN
     {
         static void Main(string[] _)
         {
-            //CompressInstruction("R,8,R,8,R,4,R,4,R,8,L,6,L,2,R,4,R,4,R,8,R,8,R,8,L,6,L,2,");
-            //CompressInstruction("R,6,L,6,L,10,L,8,L,6,L,10,L,6,R,6,L,6,L,10,L,8,L,6,L,10,L,6,R,6,L,8,L,10,R,6,R,6,L,6,L,10,L,8,L,6,L,10,L,6,R,6,L,8,L,10,R,6,R,6,L,6,L,10,R,6,L,8,L,10,R,6,");
-
             var inputParser = new SingleLineStringInputParser<long>(long.TryParse);
             using var inputProvider = new InputProvider<long>("Input.txt", inputParser.GetValue);
 
-            //var world = Part1(inputProvider.ToList());
+            var world = Part1(inputProvider.ToList());
 
-            //inputProvider.Reset();
+            inputProvider.Reset();
 
-            Part2(inputProvider.ToList());
+            Part2(inputProvider.ToList(), world);
         }
 
         private static World Part1(IList<long> programCode)
@@ -81,22 +78,60 @@ namespace _17_TBN
             }
         }
 
-        private static void Part2(IList<long> programCode)
+        private static void Part2(IList<long> programCode, World world)
         {
+            var initialPosition = world.WorldObjects.Cast<Tile>().Where(w => w.CharRepresentation == '^').First();
+            initialPosition.CharRepresentation = '#';
+
+            var tilesToVisit = world.WorldObjects.Cast<Tile>().Where(w => w.CharRepresentation == '#').ToList();
+
+            int maxX = tilesToVisit.Select(w => w.Position.X).Max();
+            int maxY = tilesToVisit.Select(w => w.Position.Y).Max();
+
+            var roads = new List<Road>();
+
+            // break into roads
+
+            FindHorizontalRows(tilesToVisit, maxY, roads);
+            FindVerticalRows(tilesToVisit, maxX, roads);
+
+            // find intersections
+            foreach (var road in roads)
+            {
+                road.Intersection1Roads.AddRange(roads.Where(w => w != road &&
+                                                                  (road.Intersection1 == w.Intersection1 || road.Intersection1 == w.Intersection2)));
+
+                road.Intersection2Roads.AddRange(roads.Where(w => w != road &&
+                                                                  (road.Intersection2 == w.Intersection1 || road.Intersection2 == w.Intersection2)));
+            }
+
+
+            var startingRoad = roads.Where(w => w.Intersection1 == initialPosition || w.Intersection2 == initialPosition).First();
+
+            var allPaths = new List<List<Road>>();
+            FillAllPaths(initialPosition, startingRoad, new List<Road> { startingRoad }, allPaths, tilesToVisit.Count);
+
+            var pathsThatCoverAll = allPaths
+                .Where(w => w.SelectMany(road => road.Tiles).ToHashSet().Count == tilesToVisit.Count)
+                .Select(w => ConstructInstructionFromPath(0, w))
+                .ToHashSet()
+                .ToList();
+
+            var firstCompressedPath = pathsThatCoverAll.Select(CompressInstruction).Where(w => w != null).First();
+
+            string main = firstCompressedPath.Value.main.Substring(0, firstCompressedPath.Value.main.Length - 1) + "\n";
+            string a = firstCompressedPath.Value.a.Substring(0, firstCompressedPath.Value.a.Length - 1) + "\n";
+            string b = firstCompressedPath.Value.b.Substring(0, firstCompressedPath.Value.b.Length - 1) + "\n";
+            string c = firstCompressedPath.Value.c.Substring(0, firstCompressedPath.Value.c.Length - 1) + "\n";
+
+            string inputToGive = main + a + b + c + "n\n";
+
             var memory = new IntCodeMemory(programCode);
             memory[0] = 2;
 
             var computer = new IntCodeComputer();
 
-            // Strings done manually:
-            string main = "A,B,A,B,C,A,B,C,A,C\n";
-            string A = "R,6,L,6,L,10\n";
-            string B = "L,8,L,6,L,10,L,6\n";
-            string C = "R,6,L,8,L,10,R,6\n";
-
-            string inputToGive = main + A + B + C + "n\n";
             int inputCount = 0;
-
             computer.Run(memory, Input, Output);
 
             long Input()
@@ -106,159 +141,86 @@ namespace _17_TBN
 
             void Output(long output)
             {
-                if (output > 130)
+                if (output > char.MaxValue)
                 {
-                    // assuming > 100 is then not a ascii value
-                    Console.WriteLine(output);
+                    Console.WriteLine($"Part 2: star dust collected on the way: {output}");
                 }
             }
-
-            //var printer = new WorldPrinter();
-
-            //var initialPosition = world.WorldObjects.Cast<Tile>().Where(w => w.CharRepresentation == '^').First();
-            //initialPosition.CharRepresentation = '#';
-
-            //var tilesToVisit = world.WorldObjects.Cast<Tile>().Where(w => w.CharRepresentation == '#').ToList();
-
-            //int maxX = tilesToVisit.Select(w => w.Position.X).Max();
-            //int maxY = tilesToVisit.Select(w => w.Position.Y).Max();
-
-            //var roads = new List<Road>();
-
-            //// break into roads
-
-            //FindHorizontalRows(tilesToVisit, maxY, roads);
-            //FindVerticalRows(tilesToVisit, maxX, roads);
-
-            //printer.Print(world);
-
-            //// find intersections
-            //foreach (var road in roads)
-            //{
-
-            //    road.Intersection1Roads.AddRange(roads.Where(w => w != road &&
-            //                                                      (road.Intersection1 == w.Intersection1 || road.Intersection1 == w.Intersection2)));
-
-            //    road.Intersection2Roads.AddRange(roads.Where(w => w != road &&
-            //                                                      (road.Intersection2 == w.Intersection1 || road.Intersection2 == w.Intersection2)));
-            //}
-
-
-            //var startingRoad = roads.Where(w => w.Intersection1 == initialPosition || w.Intersection2 == initialPosition).First();
-
-            //var allPaths = new List<List<Road>>();
-            //FillAllPaths(initialPosition, startingRoad, new List<Road> { startingRoad }, allPaths, tilesToVisit.Count);
-
-            //var pathsThatCoverAll = allPaths
-            //    .Where(w => w.SelectMany(road => road.Tiles).ToHashSet().Count == tilesToVisit.Count)
-            //    .Select(w => ConstructInstructionFromPath(0, w))
-            //    .ToHashSet()
-            //    .ToList();
-
-            //var path = allPaths
-            //    .Where(w => w.SelectMany(road => road.Tiles).ToHashSet().Count == tilesToVisit.Count).OrderBy(w => w.Count).First();
-            //Console.WriteLine(string.Join(",", path.Select(w => w.Id)));
-            //Console.WriteLine(ConstructInstructionFromPath(0, path));
-            //Console.WriteLine(pathsThatCoverAll.OrderBy(w => w.Length).First());
-
-            //foreach (var instruction in pathsThatCoverAll)
-            //{
-            //    CompressInstruction(instruction);
-            //}
-
-            //foreach (var path in pathsThatCoverAll)
-            //{
-            //    Console.WriteLine($"{string.Join(", ", path.Select(w => w.Id))}");
-            //}
-
-            //long starDust = 0;
-            //computer.Run(memory, null, Output);
-
-            //printer.Print(world);
-
-
-            //void Output(long collectedStarDust)
-            //{
-            //    starDust = collectedStarDust;
-            //}
         }
 
-        private static string CompressInstruction(string instruction)
+        private static (string main, string a, string b, string c)? CompressInstruction(string instruction)
         {
-            for (int maxLengthA = 20; maxLengthA > 1; maxLengthA--)
+            for (int lengthC = 2; lengthC < 20; lengthC++)
             {
-                for (int maxLengthB = 20; maxLengthB > 1; maxLengthB--)
+                for (int lengthB = 2; lengthB < 20; lengthB++)
                 {
-                    for (int maxLengthC = 20; maxLengthC > 1; maxLengthC--)
+                    for (int lengthA = 2; lengthA < 20; lengthA++)
                     {
-                        var substringA = FindLongestSubstringThatRepeats(0, maxLengthA, instruction);
-                        var substringB = FindLongestSubstringThatRepeats(substringA.Length, maxLengthB, instruction);
-                        var substringC = FindLongestSubstringThatRepeats(substringA.Length + substringB.Length, maxLengthC, instruction);
+                        var compressed = Replace(instruction, lengthA, lengthB, lengthC);
 
-                        maxLengthC = substringC.Length;
-
-                        if (string.IsNullOrWhiteSpace(substringA)) break;
-                        if (string.IsNullOrWhiteSpace(substringB)) break;
-                        if (string.IsNullOrWhiteSpace(substringC)) break;
-
-                        var odered = new List<(string substring, string replacement)> { (substringA, "A,"), (substringB, "B,"), (substringC, "C,") }.OrderByDescending(w => w.substring.Length);
-
-                        string solution = instruction;
-
-                        foreach ((string substring, string replacement) in odered)
+                        if (IsFullyReplaced(compressed.main))
                         {
-                            solution = solution.Replace(substring, replacement);
-                        }
-
-                        //it is a solution if it doesn't contain any numbers
-                        bool containsNumbers = false;
-                        for (int i = 0; i < 9; i++)
-                        {
-                            if (solution.Contains(i.ToString()))
-                            {
-                                containsNumbers = true;
-                                break;
-                            }
-                        }
-
-                        if (!containsNumbers)
-                        {
-                            Console.WriteLine($"Found solution!");
-                            Console.WriteLine(instruction);
-                            Console.WriteLine();
-                            Console.WriteLine("Main: " + solution);
-                            Console.WriteLine("A: " + substringA);
-                            Console.WriteLine("B: " + substringB);
-                            Console.WriteLine("C: " + substringC);
-
-                            Console.WriteLine();
-                            Console.WriteLine();
-                            return solution;
+                            return compressed;
                         }
                     }
                 }
             }
 
-            return string.Empty;
+            return null;
 
-            string FindLongestSubstringThatRepeats(int startIndex, int maxLength, string str)
+            bool IsFullyReplaced(string compressedString) =>
+                GetIndexOfUnmodified(compressedString) < 0;
+        }
+
+        private static int GetIndexOfUnmodified(string compressedString)
+        {
+            for (int i = 0; i < compressedString.Length; i++)
             {
-                string substring = string.Empty;
-                for (int i = 1; i < maxLength; i++)
+                if (i % 2 == 0)
                 {
-                    var sub = str.Substring(startIndex, i);
-                    if (str.Substring(startIndex + i).Contains(sub))
-                    {
-                        substring = sub;
-                    }
-                    else
-                    {
-                        break;
-                    }
+                    if (compressedString[i] != 'A' &&
+                        compressedString[i] != 'B' &&
+                        compressedString[i] != 'C')
+                        return i;
                 }
-
-                return substring;
+                else
+                {
+                    if (compressedString[i] != ',')
+                        return i;
+                }
             }
+
+            return -1;
+        }
+
+        private static (string main, string a, string b, string c) Replace(string instruction, int lengthA, int lengthB, int lengthC)
+        {
+            string workingCopy = instruction;
+
+            string substringA = workingCopy.Substring(0, lengthA);
+
+            if (substringA.StartsWith(",")) substringA = substringA.Substring(1);
+            if (!substringA.EndsWith(",")) substringA += ",";
+
+            workingCopy = workingCopy.Replace(substringA, "A,");
+
+            int startIndexB = GetIndexOfUnmodified(workingCopy);
+            string substringB = workingCopy.Substring(startIndexB, lengthB);
+
+            if (substringB.StartsWith(",")) substringB = substringB.Substring(1);
+            if (!substringB.EndsWith(",")) substringB += ",";
+
+            workingCopy = workingCopy.Replace(substringB, "B,");
+
+            int startIndexC = GetIndexOfUnmodified(workingCopy);
+            string substringC = workingCopy.Substring(startIndexC, lengthC);
+
+            if (substringB.StartsWith(",")) substringB = substringB.Substring(1);
+            if (!substringC.EndsWith(",")) substringC += ",";
+
+            workingCopy = workingCopy.Replace(substringC, "C,"); 
+            
+            return (workingCopy, substringA, substringB, substringC);
         }
 
         private static void FillAllPaths(Tile entryIntersection, Road road, List<Road> path, List<List<Road>> allPaths, int tilesToVisit)
