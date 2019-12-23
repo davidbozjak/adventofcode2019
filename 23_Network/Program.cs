@@ -13,17 +13,10 @@ namespace _23_Network
             var inputParser = new SingleLineStringInputParser<long>(long.TryParse);
             using var inputProvider = new InputProvider<long>("Input.txt", inputParser.GetValue);
 
-            Part1(inputProvider.ToList());
-
-            Console.WriteLine("Press any key for Part 2");
-            Console.ReadKey();
-
-            inputProvider.Reset();
-
-            Part2(inputProvider.ToList());
+            RunNetwork(inputProvider.ToList());
         }
 
-        private static void Part1(IList<long> programCode)
+        private static void RunNetwork(IList<long> programCode)
         {
             int networkSize = 50;
             var computers = new List<IIntCodeComputer>();
@@ -33,6 +26,8 @@ namespace _23_Network
             var tasks = new List<Task>();
             var partialSentMessages = Enumerable.Range(0, networkSize).Select(w => (long?)w).ToArray();
             var partialReceivedMessages = new (long destinationAddress, long? x)?[networkSize];
+
+            (long x, long y)? natPackage = null;
 
             var lockingObject = new object();
 
@@ -45,9 +40,9 @@ namespace _23_Network
                 memories.Add(memory);
                 
                 var networkAddress = i;
-                //tasks.Add(Task.Run(() => computer.Run(memory, () => Input(networkAddress), output => Output(networkAddress, output))));
 
-                tasks.Add(Task.Factory.StartNew(() => computer.Run(memory, () => Input(networkAddress), output => Output(networkAddress, output)),
+                tasks.Add(Task.Factory.StartNew(
+                    () => computer.Run(memory, () => Input(networkAddress), output => Output(networkAddress, output)),
                     TaskCreationOptions.LongRunning));
             }
 
@@ -71,6 +66,14 @@ namespace _23_Network
                     }
                     else
                     {
+                        if (natPackage != null && messageQueues.All(w => w.Count == 0))
+                        {
+                            Console.WriteLine($"Message sent to NAT: ({natPackage.Value.x}, {natPackage.Value.y})");
+
+                            messageQueues[0].Enqueue(natPackage.Value);
+                            natPackage = null;
+                        }
+
                         return -1;
                     }
                 }
@@ -94,28 +97,23 @@ namespace _23_Network
                         }
                         else
                         {
+                            var message = (partialMessage.Value.x.Value, output);
+
                             if (partialMessage.Value.destinationAddress < networkSize)
                             {
-                                var message = (partialMessage.Value.x.Value, output);
                                 messageQueues[partialMessage.Value.destinationAddress].Enqueue(message);
-                                partialReceivedMessages[networkAddress] = null;
                             }
-                            else
+                            else if (partialMessage.Value.destinationAddress == 255)
                             {
-                                if (partialMessage.Value.destinationAddress == 255)
-                                {
-                                    Console.WriteLine($"First message to address 255. x: {partialMessage.Value.x} y: {output}");
-                                    throw new Exception();  // crude halting mechanism
-                                }
+                                natPackage = message;
                             }
+                            else throw new Exception("unexpected address");
+
+                            partialReceivedMessages[networkAddress] = null;
                         }
                     }
                 }
             }
-        }
-
-        private static void Part2(IList<long> programCode)
-        {
         }
     }
 }
