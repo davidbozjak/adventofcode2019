@@ -54,9 +54,9 @@ namespace _23_Network
                 {
                     if (partialSentMessages[networkAddress] != null)
                     {
-                        var myAddress = partialSentMessages[networkAddress].Value;
+                        var secondPartOfMessage = partialSentMessages[networkAddress].Value;
                         partialSentMessages[networkAddress] = null;
-                        return myAddress;
+                        return secondPartOfMessage;
                     }
                     else if (messageQueues[networkAddress].Count > 0)
                     {
