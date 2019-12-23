@@ -51,7 +51,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "20_Maze", "20_Maze\20_Maze.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "22_Shuffle", "22_Shuffle\22_Shuffle.csproj", "{BBD620E7-8C8A-42C9-93A9-61551151D1CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "21_Springdroid", "21_Springdroid\21_Springdroid.csproj", "{086919D9-3F42-4870-A6F5-803BCD682D77}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "21_Springdroid", "21_Springdroid\21_Springdroid.csproj", "{086919D9-3F42-4870-A6F5-803BCD682D77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "23_Network", "23_Network\23_Network.csproj", "{ECDC29FB-6673-4894-9523-A6F804BFA3F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -159,6 +161,10 @@ Global
 		{086919D9-3F42-4870-A6F5-803BCD682D77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{086919D9-3F42-4870-A6F5-803BCD682D77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{086919D9-3F42-4870-A6F5-803BCD682D77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECDC29FB-6673-4894-9523-A6F804BFA3F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECDC29FB-6673-4894-9523-A6F804BFA3F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECDC29FB-6673-4894-9523-A6F804BFA3F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECDC29FB-6673-4894-9523-A6F804BFA3F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
