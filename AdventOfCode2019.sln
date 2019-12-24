@@ -53,7 +53,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "22_Shuffle", "22_Shuffle\22
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "21_Springdroid", "21_Springdroid\21_Springdroid.csproj", "{086919D9-3F42-4870-A6F5-803BCD682D77}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "23_Network", "23_Network\23_Network.csproj", "{ECDC29FB-6673-4894-9523-A6F804BFA3F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "23_Network", "23_Network\23_Network.csproj", "{ECDC29FB-6673-4894-9523-A6F804BFA3F1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "24_GameOfBugs", "24_GameOfBugs\24_GameOfBugs.csproj", "{458C7E65-2041-4473-AC83-4A7846D3ED3B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F823FD92-262B-4ADD-9D73-25BFA7B1ECBE}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -165,6 +172,10 @@ Global
 		{ECDC29FB-6673-4894-9523-A6F804BFA3F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECDC29FB-6673-4894-9523-A6F804BFA3F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ECDC29FB-6673-4894-9523-A6F804BFA3F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{458C7E65-2041-4473-AC83-4A7846D3ED3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{458C7E65-2041-4473-AC83-4A7846D3ED3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{458C7E65-2041-4473-AC83-4A7846D3ED3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{458C7E65-2041-4473-AC83-4A7846D3ED3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

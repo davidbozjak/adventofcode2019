@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# CA1707: Remove the underscores from assembly name 24_TBN.
+dotnet_diagnostic.CA1707.severity = none

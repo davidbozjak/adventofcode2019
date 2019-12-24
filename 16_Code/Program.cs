@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace _16_TBN
+namespace _16_Code
 {
     class Program
     {
