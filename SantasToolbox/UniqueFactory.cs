@@ -27,5 +27,10 @@ namespace SantasToolbox
 
             return this.allCreatedInstances[identifier];
         }
+
+        public void InsertSpecialInstance(T key, U value)
+        {
+            this.allCreatedInstances[key] = value;
+        }
     }
 }

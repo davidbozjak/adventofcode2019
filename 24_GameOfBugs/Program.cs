@@ -14,15 +14,16 @@ namespace _24_GameOfBugs
 
             Part1(inputProvider);
 
-            Console.WriteLine();
             inputProvider.Reset();
+            Console.ReadKey();
 
             Part2(inputProvider);
         }
 
         private static void Part1(IEnumerable<string> input)
         {
-            using var world = ParseWorld(input);
+            using var world = new World();
+            PopulateWorld(input, world);
 
             var bioDiversityLog = new List<int>();
 
@@ -35,17 +36,25 @@ namespace _24_GameOfBugs
                 world.SimulateWorldMinute();
             }
 
+            printer.Print(world);
             Console.WriteLine($"Part 1: First repeating bio diversity score: {world.BioDivirsetyScore}");
         }
 
         private static void Part2(IEnumerable<string> input)
         {
+            using var world = new World(null, null);
+            PopulateWorld(input, world);
+
+            for (int tick = 0; tick < 200; tick++)
+            {
+                world.SimulateWorldMinute();
+            }
+
+            Console.WriteLine($"Part 2: Total bugs discovered: {world.TotalBugsInWorld} on {world.GetTotalReachableLevels()} levels");
         }
 
-        private static World ParseWorld(IEnumerable<string> input)
+        private static void PopulateWorld(IEnumerable<string> input, World world)
         {
-            var world = new World();
-
             int y = 0;
             foreach (var row in input)
             {
@@ -58,8 +67,6 @@ namespace _24_GameOfBugs
 
                 y++;
             }
-
-            return world;
         }
     }
 
@@ -67,7 +74,7 @@ namespace _24_GameOfBugs
     {
         public Point Position { get; }
 
-        public char CharRepresentation => this.IsInfested ? '#' : '.';
+        public virtual char CharRepresentation => this.IsInfested ? '#' : '.';
 
         public int Z => 1;
 
@@ -76,13 +83,36 @@ namespace _24_GameOfBugs
             this.Position = position;
         }
 
-        public bool IsInfested { get; set; }
+        public virtual bool IsInfested { get; set; }
+    }
+
+    class RecursiveTile : Tile
+    {
+        public RecursiveTile(Point position)
+            : base(position)
+        { }
+
+        public override char CharRepresentation => '?';
+
+        public override bool IsInfested
+        {
+            get => false;
+            set
+            {
+                //recursive value never gets set, by design
+            }
+        }
     }
 
     class World : IWorld, IDisposable
     {
         private readonly UniqueFactory<Point, Tile> tileFactory = new UniqueFactory<Point, Tile>(p => new Tile(p));
         private readonly Cached<int> bioDiversityCached;
+        private readonly Cached<int> totalBugsInSystemCached;
+        private readonly bool isRecursive;
+        private World? recursiveWorld;
+        private World? parentWorld;
+        private bool isDisposing = false;
 
         public IEnumerable<IWorldObject> WorldObjects
         {
@@ -98,12 +128,26 @@ namespace _24_GameOfBugs
         public World()
         {
             this.bioDiversityCached = new Cached<int>(GetBioDivirsetyScore);
+            this.totalBugsInSystemCached = new Cached<int>(GetTotalBugsInSystem);
+            this.isRecursive = false;
+
+            // pre-generate all tiles
+            for (int y = 0; y < 5; y++)
+            {
+                for (int x = 0; x < 5; x++)
+                {
+                    this.GetTile(x, y);
+                }
+            }
         }
 
-        private World(World world)
+        public World(World? parentWorld, World? recursiveWorld)
+            : this()
         {
-            this.tileFactory = world.tileFactory;
-            this.bioDiversityCached = world.bioDiversityCached;
+            this.recursiveWorld = recursiveWorld;
+            this.parentWorld = parentWorld;
+            this.isRecursive = true;
+            this.tileFactory.InsertSpecialInstance(new Point(2, 2), new RecursiveTile(new Point(2, 2)));
         }
 
         public Tile GetTile(Point position) => this.tileFactory.GetOrCreateInstance(position);
@@ -130,6 +174,76 @@ namespace _24_GameOfBugs
 
             var right = this.GetTileIfExists(tile.Position.Right());
             if (right != null) yield return right;
+
+            if (this.parentWorld != null)
+            {
+                // top edge, include above
+                if (tile.Position.Y == 0)
+                {
+                    yield return this.parentWorld.GetTile(2, 1);
+                }
+
+                // bottom edge, include below
+                if (tile.Position.Y == 4)
+                {
+                    yield return this.parentWorld.GetTile(2, 3);
+                }
+
+                // left edge, include left
+                if (tile.Position.X == 0)
+                {
+                    yield return this.parentWorld.GetTile(1, 2);
+                }
+
+                // right edge, include right
+                if (tile.Position.X == 4)
+                {
+                    yield return this.parentWorld.GetTile(3, 2);
+                }
+            }
+
+            if (this.recursiveWorld != null)
+            {
+                // above
+                if (tile.Position.X == 2 && tile.Position.Y == 1)
+                {
+                    yield return this.recursiveWorld.GetTile(0, 0);
+                    yield return this.recursiveWorld.GetTile(1, 0);
+                    yield return this.recursiveWorld.GetTile(2, 0);
+                    yield return this.recursiveWorld.GetTile(3, 0);
+                    yield return this.recursiveWorld.GetTile(4, 0);
+                }
+
+                // below
+                if (tile.Position.X == 2 && tile.Position.Y == 3)
+                {
+                    yield return this.recursiveWorld.GetTile(0, 4);
+                    yield return this.recursiveWorld.GetTile(1, 4);
+                    yield return this.recursiveWorld.GetTile(2, 4);
+                    yield return this.recursiveWorld.GetTile(3, 4);
+                    yield return this.recursiveWorld.GetTile(4, 4);
+                }
+
+                // left
+                if (tile.Position.X == 1 && tile.Position.Y == 2)
+                {
+                    yield return this.recursiveWorld.GetTile(0, 0);
+                    yield return this.recursiveWorld.GetTile(0, 1);
+                    yield return this.recursiveWorld.GetTile(0, 2);
+                    yield return this.recursiveWorld.GetTile(0, 3);
+                    yield return this.recursiveWorld.GetTile(0, 4);
+                }
+
+                // right
+                if (tile.Position.X == 3 && tile.Position.Y == 2)
+                {
+                    yield return this.recursiveWorld.GetTile(4, 0);
+                    yield return this.recursiveWorld.GetTile(4, 1);
+                    yield return this.recursiveWorld.GetTile(4, 2);
+                    yield return this.recursiveWorld.GetTile(4, 3);
+                    yield return this.recursiveWorld.GetTile(4, 4);
+                }
+            }
         }
 
         public bool AreNeighbours(Tile tile1, Tile tile2)
@@ -137,14 +251,11 @@ namespace _24_GameOfBugs
             return GetNeighbours(tile1).Any(w => w == tile2);
         }
 
-        public World Clone()
-        {
-            return new World(this);
-        }
-
         public int BioDivirsetyScore => this.bioDiversityCached.Value;
 
-        public void SimulateWorldMinute()
+        public int TotalBugsInWorld => this.totalBugsInSystemCached.Value;
+
+        public void SimulateWorldMinute(World? callingWorld = null)
         {
             var newValues = new Dictionary<Tile, bool>();
 
@@ -166,9 +277,39 @@ namespace _24_GameOfBugs
                 newValues[tile] = newValue;
             }
 
+            if (this.isRecursive)
+            {
+                if (this.recursiveWorld == null)
+                {
+                    if (this.GetNeighbours(this.GetTile(2, 2)).Where(w => w.IsInfested).Any())
+                    {
+                        this.recursiveWorld = new World(parentWorld: this, recursiveWorld: null);
+                        this.recursiveWorld.SimulateWorldMinute(this);
+                    }
+                }
+                else if (this.recursiveWorld != callingWorld)
+                {
+                    this.recursiveWorld.SimulateWorldMinute(this);
+                }
+
+                if (this.parentWorld == null)
+                {
+                    if (this.GetNeighbours(this.GetTile(2, 2)).Where(w => w.IsInfested).Any())
+                    {
+                        this.parentWorld = new World(parentWorld: null, recursiveWorld: this);
+                        this.parentWorld.SimulateWorldMinute(this);
+                    }
+                }
+                else if (this.parentWorld != callingWorld)
+                {
+                    this.parentWorld.SimulateWorldMinute(this);
+                }
+            }
+
             newValues.Keys.ToList().ForEach(w => w.IsInfested = newValues[w]);
 
             this.bioDiversityCached.Reset();
+            this.totalBugsInSystemCached.Reset();
         }
 
         private int GetBioDivirsetyScore()
@@ -188,9 +329,59 @@ namespace _24_GameOfBugs
             return bioDiversity;
         }
 
+        private int GetTotalBugsInSystem()
+        {
+            return this.GetBugsInThisSystem() +
+                (this.recursiveWorld?.GetBugsInThisSystemAndBelow() ?? 0) +
+                (this.parentWorld?.GetBugsInThisSystemAndAbove() ?? 0);
+        }
+
+        private int GetBugsInThisSystemAndAbove()
+        {
+            return GetBugsInThisSystem() +
+                (this.parentWorld?.GetBugsInThisSystemAndAbove() ?? 0);
+        }
+
+        private int GetBugsInThisSystemAndBelow()
+        {
+            return GetBugsInThisSystem() +
+                (this.recursiveWorld?.GetBugsInThisSystemAndBelow() ?? 0);
+        }
+
+        private int GetBugsInThisSystem()
+        {
+            return this.tileFactory.AllCreatedInstances.Where(w => w.IsInfested).Count();
+        }
+
+        public int GetTotalReachableLevels()
+        {
+            return 1 + 
+                (this.parentWorld?.GetReachableLevelsAbove() ?? 0) + 
+                (this.recursiveWorld?.GetReachableLevelsBelow() ?? 0);
+        }
+
+        private int GetReachableLevelsAbove()
+        {
+            return 1 + (this.parentWorld?.GetReachableLevelsAbove() ?? 0);
+        }
+
+        private int GetReachableLevelsBelow()
+        {
+            return 1 + (this.recursiveWorld?.GetReachableLevelsBelow() ?? 0);
+        }
+
         public void Dispose()
         {
-            this.bioDiversityCached.Dispose();
+            if (!this.isDisposing)
+            {
+                this.isDisposing = true;
+
+                this.bioDiversityCached.Dispose();
+                this.totalBugsInSystemCached.Dispose();
+
+                this.recursiveWorld?.Dispose();
+                this.parentWorld?.Dispose();
+            }
         }
     }
 }
